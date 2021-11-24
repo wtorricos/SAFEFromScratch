@@ -78,3 +78,55 @@ First create the project:
   - you can run tests with: `dotnet test`
   - Reference the server project: `dotnet add reference ..\..\src\Server\Server.fsproj`
 
+# Server Integration Tests
+Optionally you can add integration tests to the server.
+  - Integration testing with [WebApplicationFactory](https://docs.microsoft.com/en-us/aspnet/core/test/integration-tests?view=aspnetcore-6.0#test-app-prerequisites), some examples:
+    - [dotnet-minimal-api-integration-testing](https://github.com/martincostello/dotnet-minimal-api-integration-testing)
+    - [Clean Architecture](https://github.com/jasontaylordev/CleanArchitecture#:~:text=The%20easiest%20way%20to%20get%20started%20is%20to,the%20back%20end%20%28ASP.NET%20Core%20Web%20API%29%20) 
+  - Add testing package: `dotnet add package Microsoft.AspNetCore.Mvc.Testing`
+  - Create a Program to be the entry point and a WebApplicationFactory fixture for testing.
+
+```f#
+// The type program is used as the entry point for WebApplicationFactory for testing.
+type Program () =
+    let routes = router {
+        get "/api/foo" (text "Hello from Saturn!")
+        getf "/api/foo/%s" (fun n -> n |> greet |> text)
+    }
+
+    let app =
+        application {
+            use_router routes
+        }
+
+    member x.main (_: string array) = run app
+
+Program().main [||]
+```
+Now you can create a WebApplicationFactory that you can use in your unit tests.
+```f#
+type ServerFixture () =
+    inherit WebApplicationFactory<Program>()
+type IntegrationTests (factory: ServerFixture) =
+    interface IClassFixture<ServerFixture>
+
+    [<Fact>]
+    member _.``Get greeting`` () =
+        let client = factory.CreateClient()
+
+        let response = client.GetAsync("/api/foo/John").Result
+
+        response.EnsureSuccessStatusCode()
+```
+Other style is to create an instance of WebApplicationFactory.
+```f#
+type IntegrationTests' () =
+    let server = (new ServerFixture()).Server
+
+    [<Fact>]
+    let ``Get greeting`` () =
+        let client = server.CreateClient()
+        let response = client.GetAsync("/api/foo/John").Result
+        response.EnsureSuccessStatusCode()
+```
+Note that you can override different methods of the WebApplication factory to customize the setup for your tests.
