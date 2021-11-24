@@ -195,6 +195,7 @@ Note that if you open index.html in your browser you will get an error because f
 # Create a bundle with Webpack
 Use [webpack](https://webpack.js.org/guides/installation/) module bundler to create a bundle.js file and solve the module issues we have seen above in the generated js file.
   - In the root of the project run: `npm init` to create the package.json file
+    - remember to add "private": true, to make it explicit that this package won't be published. 
   - Let's add webpack with `npm install webpack webpack-cli --save-dev`
     - [webpack-cli](https://webpack.js.org/api/cli/) to run webpack using npx or as an npm command.
   - Add node_modules/ to the .gitignore file. 
@@ -237,3 +238,30 @@ You can also add a build task to the package.json file:
 Now you can run `npm run build` instead of `npx webpack`. 
 If you are wondering why you can't run `webpack` directly from the command line, this is because we don't have it as a global package,
 You don't have this problem when you add this command to the package.json file because when you run it from there the context will be the project and it will look for webpack in the node_modules folder.
+
+# Webpack plugins
+We are going to start with a simple plugin that will allow us to copy files from a public folder to the dist folder.
+  - install the npm copy-webpack-plugin plugin: `npm install copy-webpack-plugin --save-dev`
+  - We are going to copy the index.html file along with public assets like a favicon.png file.
+  - Create a public directory in the Client project and move the index.html there, you can add a favicon or other assets as well.
+Now you need to update the webpack.config.js file to use the plugin:
+```js
+// import the plugin
+const CopyPlugin = require("copy-webpack-plugin");
+```
+Now use the plugin to copy the files from the `from` directory to the output folder (in our case dist)
+```js
+plugins: [
+        new CopyPlugin({
+            patterns: [
+                // by default copies to output folder
+                { from: path.join(__dirname,'./src/Client/public') }
+            ],
+        }),
+    ]
+```
+Now that we are copying our html file from the public folder to the distribution folder we also need to update the reference to the bundle file:
+```html
+<script src="bundle.js"></script>
+```
+

@@ -1,6 +1,7 @@
 // Basic configuration for development.
 // A more robust guide can be found here: https://github.com/fable-compiler/webpack-config-template
 const path = require("path");
+const CopyPlugin = require("copy-webpack-plugin");
 
 module.exports = {
     // required property, either "development" or "production".
@@ -14,5 +15,13 @@ module.exports = {
         path: path.join(__dirname, "./src/Client/dist"),
         // the resulting file, by convention bundle.js
         filename: "bundle.js",
-    }
+    },
+    plugins: [
+        new CopyPlugin({
+            patterns: [
+                // by default copies to output folder
+                { from: path.join(__dirname,'./src/Client/public') }
+            ],
+        }),
+    ],
 }
