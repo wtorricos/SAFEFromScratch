@@ -7,6 +7,12 @@
 
   <ItemGroup>
     <Compile Include="Program.fs" />
+    <Content Include="index.html" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Fable.Browser.DOM" Version="2.7.0" />
+    <PackageReference Include="Fable.Core" Version="3.6.0" />
   </ItemGroup>
 
 </Project>

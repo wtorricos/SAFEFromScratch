@@ -16,3 +16,6 @@ bin/
 
 # Mac files
 *DS_Store
+
+# Fable compiler files
+*.fs.js
