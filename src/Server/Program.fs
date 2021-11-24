@@ -1,4 +1,13 @@
-﻿
+﻿open Giraffe
+open Saturn
 
-// For more information see https://aka.ms/fsharp-console-apps
-printfn "Hello from F#"
+let routes = router {
+    get "/api/foo" (text "Hello from Saturn!")
+}
+
+let app =
+    application {
+        use_router routes
+    }
+
+run app

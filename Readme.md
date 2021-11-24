@@ -46,3 +46,26 @@ bin/
 # Mac files
 *DS_Store
 ```
+# Saturn
+Add [Saturn](https://saturnframework.org/) package to the server project. 
+  - $ `cd src/Server`
+  - `dotnet add package Saturn`
+Edit Program.fs with a minimal implementation that exposes an endpoint.
+```f#
+open Giraffe
+open Saturn
+
+let routes = router {
+    get "/api/foo" (text "Hello from Saturn!")
+}
+
+let app =
+    application {
+        use_router routes
+    }
+
+run app
+```
+Now you can run the server `dotnet watch run` and test the endpoint we just added.
+
+Saturn is build on top of [Giraffe](https://github.com/giraffe-fsharp/Giraffe), so alternatively you can work with Giraffe.
