@@ -7,7 +7,7 @@
 
   <ItemGroup>
     <Compile Include="Program.fs" />
-    <Content Include="index.html" />
+    <Content Include="public\index.html" />
   </ItemGroup>
 
   <ItemGroup>
