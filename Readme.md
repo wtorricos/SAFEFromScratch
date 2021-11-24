@@ -69,3 +69,12 @@ run app
 Now you can run the server `dotnet watch run` and test the endpoint we just added.
 
 Saturn is build on top of [Giraffe](https://github.com/giraffe-fsharp/Giraffe), so alternatively you can work with Giraffe.
+
+# Server Unit tests
+First create the project:
+  - At the root of the repo run: `dotnet new xunit --output tests/Server -lang F# --name Server.Test`
+  - Add the project to the solution: `dotnet sln SafeFromScratch.sln add tests/Server/Server.Test.fsproj`
+  - cd tests/Server
+  - you can run tests with: `dotnet test`
+  - Reference the server project: `dotnet add reference ..\..\src\Server\Server.fsproj`
+
