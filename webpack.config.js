@@ -16,6 +16,11 @@ module.exports = {
         // the resulting file, by convention bundle.js
         filename: "bundle.js",
     },
+    devServer: {
+        static: './src/Client/dist',
+        hot: true,
+        port: 8080,
+    },
     plugins: [
         new CopyPlugin({
             patterns: [
