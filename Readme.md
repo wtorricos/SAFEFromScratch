@@ -311,3 +311,16 @@ use: [
     }
 ]
 ```
+
+# Hot Reload
+One of the most productive features you can get with webpack is hot reload and is really simple to add.
+  - First install the dev-server package: `npm install --save-dev webpack-dev-server`
+  - Add the [devServer](https://webpack.js.org/guides/hot-module-replacement/) configuration to the webpack.config.js file.
+```js
+devServer: {
+        static: './src/Client/dist',
+        hot: true,
+        port: 8080,
+    },
+```
+Now you can run `dotnet fable watch --run webpack-dev-server` to run fable and the web server in parallel and see your changes be reloaded in real time.
