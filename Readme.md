@@ -265,3 +265,49 @@ Now that we are copying our html file from the public folder to the distribution
 <script src="bundle.js"></script>
 ```
 
+# Loading Styles
+We are going to use webpack loaders in order to load css, sass and scss files. 
+  - Check the official docs for more details: [webpack sass loader](https://webpack.js.org/loaders/sass-loader/)
+  - install webpack css packages: `npm install --save-dev style-loader css-loader sass-loader sass`
+Now update the webpack.config.js file to chain the sass-loader with the css-loader and the style-loader to immediately apply all styles to the DOM.
+```js
+module: {
+    // Loaders allow webpack to process files other than JS and convert them into valid
+    // modules that can be consumed by your application and added to the dependency graph
+    rules: [
+        // style loaders
+        {
+            // The test property identifies which file or files should be transformed.
+            test: /\.(sass|scss|css)$/,
+            // The use property indicates which loader should be used to do the transforming.
+            use: [
+                'style-loader',
+                'css-loader',
+                'sass-loader'
+            ]
+        }
+    ]
+}
+```
+Now you can import scss files in your fs files with `Fable.Core.JsInterop.importAll "./Program.scss"`
+  - Note that you still need to run `dotnet fable` and `npm run build` every time you make a change
+
+In order to check the actual files in the dev console you need to add [source maps](https://webpack.js.org/loaders/sass-loader/#sourcemap)
+In this case this is really straight forward an you can just update loaders like this:
+```js
+use: [
+    'style-loader',
+    {
+        loader: 'css-loader',
+        options: {
+            sourceMap: true,
+        },
+    },
+    {
+        loader: 'sass-loader',
+        options: {
+            sourceMap: true,
+        },
+    }
+]
+```

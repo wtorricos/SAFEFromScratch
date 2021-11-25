@@ -24,4 +24,31 @@ module.exports = {
             ],
         }),
     ],
+    module: {
+        // Loaders allow webpack to process files other than JS and convert them into valid
+        // modules that can be consumed by your application and added to the dependency graph
+        rules: [
+            // style loaders
+            {
+                // The test property identifies which file or files should be transformed.
+                test: /\.(sass|scss|css)$/,
+                // The use property indicates which loader should be used to do the transforming.
+                use: [
+                    'style-loader',
+                    {
+                        loader: 'css-loader',
+                        options: {
+                            sourceMap: true,
+                        },
+                    },
+                    {
+                        loader: 'sass-loader',
+                        options: {
+                            sourceMap: true,
+                        },
+                    }
+                ]
+            }
+        ]
+    }
 }
