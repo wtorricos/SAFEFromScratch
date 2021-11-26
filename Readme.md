@@ -324,3 +324,91 @@ devServer: {
     },
 ```
 Now you can run `dotnet fable watch --run webpack-dev-server` to run fable and the web server in parallel and see your changes be reloaded in real time.
+
+## Fake Build
+We still need to start the server, the client and fable. So it's time to simplify this process with the help of [fake](https://fake.build/)
+Although we could use the fake-cli along with a .fsx script we are going to use the same approach as the SAFE template and create a build project.
+  - Create a Build project in the root folder of the repo.
+    - dotnet new console -lang F# --name Build --output ./
+    - Note output ./ this is very important since we want the .fsproj file to be in the root folder so we can call commands with dotnet run directly.
+  - Add Fake.Core.Target package `dotnet add package Fake.Core.Target`.
+  - Add Fake.IO.FileSystem `dotnet add package Fake.IO.FileSystem` we are going to use it to delete folders in the clean step later.
+  - Add the project to the solution.
+Let's create our first Target, modify Program.fs so it looks like this:
+```f#
+open Fake.Core
+Target.create "Run" (fun _ ->
+    printfn "-- run --"
+    )
+[<EntryPoint>]
+let main args =
+    Target.runOrDefault "Run" // always run the Run target 
+    0
+```
+If we execute `dotnet run` which will invoke the Run Target it will fail miserably,this is because we first need to add a context in which fake will run.
+Inspired in the Fable template let's add the following lines before the Run target.
+```f#
+let execContext = Context.FakeExecutionContext.Create false "build.fsx" []
+Context.setExecutionContext (Context.RuntimeContext.Fake execContext)
+```
+if we execute `dotnet run` now we will see `-- run --` printed in the console. Now we are ready to add some real tasks.
+```f#
+open Fake.Core
+open Fake.IO
+
+// initialize context for Fake to run
+let execContext = Context.FakeExecutionContext.Create false "build.fsx" []
+Context.setExecutionContext (Context.RuntimeContext.Fake execContext)
+
+let serverPath = "./src/Server"
+let clientPath = "./src/Client"
+let clientPathDistFolder = "./src/Client/dist"
+
+// helper functions to run terminal commands.
+let createProcess exe arg dir =
+    CreateProcess.fromRawCommandLine exe arg
+    |> CreateProcess.withWorkingDirectory dir
+    |> CreateProcess.ensureExitCode
+
+let runProcess proc = proc |> Proc.run
+
+// Define targets, we can run each target with dotnet run for example `dotnet run Clean`
+Target.create "Clean" (fun _ ->
+    createProcess "dotnet" "clean" serverPath |> runProcess |> ignore
+    createProcess "dotnet" "clean" clientPath |> runProcess |> ignore
+    createProcess "dotnet" "fable clean --yes" clientPath |> runProcess |> ignore
+    Shell.cleanDir clientPathDistFolder
+    )
+
+Target.create "Run" (fun _ ->
+    createProcess "dotnet" "build" serverPath |> runProcess |> ignore
+    createProcess "dotnet" "build" clientPath |> runProcess |> ignore
+    [| createProcess "dotnet" "watch run" serverPath
+       createProcess "dotnet" $"fable watch {clientPath} --run webpack-dev-server" "." |]
+    |> Array.Parallel.map runProcess
+    |> ignore
+    )
+
+// The entry point allows us to run any task defined as a Target.
+// Ex. dotnet run Clean
+[<EntryPoint>]
+let main args =
+    try
+        match args with
+        | [| target |] -> Target.runOrDefault target
+        | _ -> Target.runOrDefault "Run"
+        0
+    with e ->
+        printfn $"{e}"
+        1
+```
+Now we can just use `dotnet run Clean` to clean our projects or `dotnet run` to run the Client and the Server in parallel with hor reload and everything else in place.
+Additionally we can add dependencies like:
+```f#
+// Define dependencies
+open Fake.Core.TargetOperators
+let dependencies = [
+    "Clean" // Clean has no dependencies at the moment
+        ==> "Run" // Run depends on Clean so Clean will run first every time we call Run 
+]
+```
