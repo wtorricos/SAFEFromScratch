@@ -1,7 +1,7 @@
 {
   "private": true,
   "scripts": {
-    "build": "webpack --config webpack.config.js",
+    "build": "webpack",
     "start": "webpack-dev-server"
   },
   "dependencies": {
@@ -11,8 +11,10 @@
   "devDependencies": {
     "copy-webpack-plugin": "^10.0.0",
     "css-loader": "^6.5.1",
+    "remotedev": "^0.2.9",
     "sass": "^1.43.5",
     "sass-loader": "^12.3.0",
+    "source-map-loader": "^3.0.0",
     "style-loader": "^3.3.1",
     "webpack": "^5.64.3",
     "webpack-cli": "^4.9.1",
