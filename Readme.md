@@ -424,9 +424,93 @@ Target.create "Format" (fun _ ->
 ```
   - Try it with `dotnet run Format`
 
+# Elmish
+Now that we can easily build the project with Fake, we are going to add Elmish to the Client.
+- Navigate to the client: `cd src/Client`
+- Add the Elmish package `dotnet add package Fable.Elmish`
+
+- Let's update Client/Program.fs to look like the basic [Elmish sample](https://elmish.github.io/elmish/basics.html):
+```f#
+open Elmish
+Fable.Core.JsInterop.importAll "./Program.scss"
+
+type Model =
+    { x : int }
+
+type Msg =
+    | Increment
+    | Decrement
+
+let init () =
+    { x = 0 }, Cmd.ofMsg Increment
+
+let update msg model =
+    match msg with
+    | Increment ->
+        { model with x = model.x + 1 }, Cmd.none
+    | Decrement ->
+        { model with x = model.x - 1 }, Cmd.none
+
+let view = (fun model _ -> printfn $"{model}")
+
+Program.mkProgram init update view
+|> Program.run
+```
+
+Now let's improve the view with Feliz, for this we have two options: 
+1. Manually install the nuget package and then the npm package.
+- Add the Elmish package `dotnet add package Feliz`
+- install the npm dependencies: `npm install react@17.0.1 react-dom@17.0.1`
+2. Use [femto](https://github.com/Zaid-Ajaj/Femto) to install the package.
+- Since this is the first time we are going to use femto first install the tool: `dotnet tool install femto`
+- Use femto to install both nuget and npm packages: `dotnet femto install Feliz src/Client/Client.fsproj`
+- Femto compatible libraries can be found in [awesome-safe-components](https://safe-stack.github.io/docs/awesome-safe-components/)
+
+Now we are also going to also add [Feliz.UseElmish](dotnet add package Feliz.UseElmish) so we can create functional components that use hooks.
+- `dotnet add package Feliz.UseElmish`
+
+Also Elmish.React which has some extension methods to hook our react components into Elmish.
+- `dotnet femto install Fable.Elmish.React src/Client/Client.fsproj`
+
+Now you can update src/Client/Program.fs and use Feliz and react.
+```f#
+open Elmish
+open Elmish.React
+open Feliz
+(* ... *)
+let view model dispatch =
+    Html.div [
+        Html.button [
+            prop.onClick (fun _ -> dispatch Increment)
+            prop.text "Increment"
+        ]
+
+        Html.button [
+            prop.onClick (fun _ -> dispatch Decrement)
+            prop.text "Decrement"
+        ]
+
+        Html.h1 model.x
+    ]
+
+Program.mkProgram init update view
+#if DEBUG
+|> Program.withConsoleTrace
+#endif
+|> Program.withReactSynchronous "elmish-app" // this is the dom element that react will hook up to.
+|> Program.run
+```
+You also need to update the public/index.html file and add the `elmish-app` element to hook app our application
+```html
+<body>
+    <!--  React will bind to this element to insert it's content.  -->
+    <div id="elmish-app"></div>
+    <!--  we are going to generate the bundle.js file with fable  -->
+    <script src="bundle.js"></script>
+</body>
+```
+
 # Todos
-- Add femto dotnet tool.
-- Add Elmish, React and Feliz to the client.
 - Add js source maps for debugging.
 - Add Client Unit tests.
 - Modify the Server unit tests to use Expecto.
