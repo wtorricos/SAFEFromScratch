@@ -412,3 +412,28 @@ let dependencies = [
         ==> "Run" // Run depends on Clean so Clean will run first every time we call Run 
 ]
 ```
+
+# Fantomas
+[Fantomas](https://github.com/fsprojects/fantomas) is a tool to format the src code.
+  - To add the tool run the following command in the root folder: dotnet tool install fantomas-tool
+  - Add a new target task on fake to easily run the tool and format your code
+```f#
+Target.create "Format" (fun _ ->
+    createProcess "dotnet" "fantomas . -r" "./src" |> runProcess |> ignore
+)
+```
+  - Try it with `dotnet run Format`
+
+# Todos
+- Add femto dotnet tool.
+- Add Elmish, React and Feliz to the client.
+- Add js source maps for debugging.
+- Add Client Unit tests.
+- Modify the Server unit tests to use Expecto.
+- Add Communication between the client and the server.
+- Make Client and Server run Shared project tests.
+- Add prod configuration to webpack and other missing steps.
+- Add Targets in Fake to create a release version of the app.
+- Refactor Fake (probably just copy from SAFE template)
+- Add support to publish the project to Azure with Farmer.
+- Add optional steps to migrate to paket instead of nuget. 
