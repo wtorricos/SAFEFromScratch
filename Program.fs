@@ -34,6 +34,10 @@ Target.create "Run" (fun _ ->
     |> ignore
     )
 
+Target.create "Format" (fun _ ->
+    createProcess "dotnet" "fantomas . -r" "./src" |> runProcess |> ignore
+)
+
 // Define dependencies
 open Fake.Core.TargetOperators
 let dependencies = [

@@ -412,3 +412,14 @@ let dependencies = [
         ==> "Run" // Run depends on Clean so Clean will run first every time we call Run 
 ]
 ```
+
+# Fantomas
+[Fantomas](https://github.com/fsprojects/fantomas) is a tool to format the src code.
+  - To add the tool run the following command in the root folder: dotnet tool install fantomas-tool
+  - Add a new target task on fake to easily run the tool and format your code
+```f#
+Target.create "Format" (fun _ ->
+    createProcess "dotnet" "fantomas . -r" "./src" |> runProcess |> ignore
+)
+```
+  - Try it with `dotnet run Format`
