@@ -423,3 +423,17 @@ Target.create "Format" (fun _ ->
 )
 ```
   - Try it with `dotnet run Format`
+
+# Todos
+- Add femto dotnet tool.
+- Add Elmish, React and Feliz to the client.
+- Add js source maps for debugging.
+- Add Client Unit tests.
+- Modify the Server unit tests to use Expecto.
+- Add Communication between the client and the server.
+- Make Client and Server run Shared project tests.
+- Add prod configuration to webpack and other missing steps.
+- Add Targets in Fake to create a release version of the app.
+- Refactor Fake (probably just copy from SAFE template)
+- Add support to publish the project to Azure with Farmer.
+- Add optional steps to migrate to paket instead of nuget. 
