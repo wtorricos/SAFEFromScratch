@@ -510,14 +510,71 @@ You also need to update the public/index.html file and add the `elmish-app` elem
 </body>
 ```
 
+# Source maps and debugging
+We already added source maps for the css files, similarly we are going to add source maps for the js files. 
+First we need to add a devtool to the webpack.config.js file:
+```js
+// integrated in webpack, controls how source maps are generated https://webpack.js.org/configuration/devtool/
+devtool: "eval-source-map",
+```
+And also a js source map loader, so first install it with: `npm install --save-dev source-map-loader`
+And then add it below the css loader:
+```js
+// JS source map loader https://webpack.js.org/loaders/source-map-loader/
+// extracts existing source maps from all JavaScript entries and passes them to the specified devtool
+{
+    test: /\.js$/,
+    enforce: "pre",
+    use: ['source-map-loader']
+}
+```
+If you run the application and review the sources you will see some nicely formatted js files, however we want to see our fs files.
+For this we need to modify the command to run fable and pass the --sourceMaps option:
+
+Build/Program.fs Run Target
+```f#
+createProcess "dotnet" $"fable watch {clientPath} --sourceMaps --run webpack-dev-server" "."
+```
+Now you may want to add `*.js.map` to .gitignore.
+
+Now we are able to debug our fs files!
+
+Finally we are going to add some additional tools for development:
+- Integration for [Remote DevTools](https://github.com/elmish/debugger) 
+  - `dotnet add package Fable.Elmish.Debugger`
+  - `npm install --save-dev  remotedev@^0.2.9`
+[HMR](https://elmish.github.io/hmr/) allows us to modify the application while it's running, without a full refresh
+  - `dotnet add package Fable.Elmish.HMR`
+
+Now let's integrate this tools with elmish in the Client/Program.fs
+```f#
+#if DEBUG
+// integration for Remote DevTools like Redux dev tools. https://github.com/elmish/debugger
+open Elmish.Debug
+//  always include open Elmish.HMR after your others open Elmish.XXX statements. This is needed to shadow the supported APIs.
+open Elmish.HMR
+#endif
+
+Program.mkProgram init update view
+#if DEBUG
+|> Program.withConsoleTrace
+#endif
+|> Program.withReactSynchronous "elmish-app"
+#if DEBUG
+|> Program.withDebugger
+#endif
+|> Program.run
+```
+
 # Todos
-- Add js source maps for debugging.
 - Add Client Unit tests.
 - Modify the Server unit tests to use Expecto.
+- Clean the project.
 - Add Communication between the client and the server.
 - Make Client and Server run Shared project tests.
 - Add prod configuration to webpack and other missing steps.
 - Add Targets in Fake to create a release version of the app.
-- Refactor Fake (probably just copy from SAFE template)
+- Refactor Fake (probably just copy the helpers from SAFE template)
 - Add support to publish the project to Azure with Farmer.
 - Add optional steps to migrate to paket instead of nuget. 
+- Create a dotnet template based on this project. 

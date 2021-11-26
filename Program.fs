@@ -29,7 +29,7 @@ Target.create "Run" (fun _ ->
     createProcess "dotnet" "build" serverPath |> runProcess |> ignore
     createProcess "dotnet" "build" clientPath |> runProcess |> ignore
     [| createProcess "dotnet" "watch run" serverPath
-       createProcess "dotnet" $"fable watch {clientPath} --run webpack-dev-server" "." |]
+       createProcess "dotnet" $"fable watch {clientPath} --sourceMaps --run webpack-dev-server" "." |]
     |> Array.Parallel.map runProcess
     |> ignore
     )
