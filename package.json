@@ -11,6 +11,7 @@
   "devDependencies": {
     "copy-webpack-plugin": "^10.0.0",
     "css-loader": "^6.5.1",
+    "mocha": "^8.3.2",
     "remotedev": "^0.2.9",
     "sass": "^1.43.5",
     "sass-loader": "^12.3.0",

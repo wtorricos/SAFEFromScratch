@@ -566,8 +566,82 @@ Program.mkProgram init update view
 |> Program.run
 ```
 
+# Client Unit Tests
+Remember that our client although written in F# is finally run on a web browser and with Javascript,
+for this reason we test it with the [Mocha](https://mochajs.org/) Javascript testing framework. 
+For this we are going to use the [Fable.Mocha](https://github.com/Zaid-Ajaj/Fable.Mocha) library that easily integrates with our F# code.
+
+Create the test project: 
+  - Run: `dotnet new console --output tests/Client -lang F# --name Client.Test` 
+  - Add the project to the solution: `dotnet sln SafeFromScratch.sln add tests/Client/Client.Test.fsproj`
+  - Reference the client project: `dotnet add tests\Client\Client.Test.fsproj reference src\Client\Client.fsproj`
+ 
+Add [Fable.Mocha](https://github.com/Zaid-Ajaj/Fable.Mocha) package
+  - `cd tests/Client`
+  - Install with femto: `dotnet femto install Fable.Mocha`
+
+Time to add our unit tests to tests/Client/Program.fs
+```f#
+module Client.Tests
+
+open Fable.Mocha
+open App
+
+let client = testList "Client" [
+    testCase "Count starts in 0" <| fun _ ->
+        let model, _ = init ()
+        Expect.equal 0 model.x "Count should start at 0"
+
+    testCase "Increase increments the count in 1" <| fun _ ->
+        let model, _ = init ()
+        let actual, _ = update Increment model
+        Expect.equal 1 actual.x "Increment should increase the count in 1"
+
+    testCase "Decrease decreases the count in 1" <| fun _ ->
+        let actual, _ = update Increment { x = 1 }
+        Expect.equal 0 actual.x "Decrease should decrement the count in 1"
+]
+
+let all = testList "All" [ client ]
+
+[<EntryPoint>]
+let main _ = Mocha.runTests all
+```
+But we are not ready to run the tests yet, similar to the Client project we need to use fable to compile the project and then run it with webpack.
+For this we are going to create a webpack.test.config.js, this file will be quite similar to the webpack.config.js file we already have, so just copy paste it and change the name.
+Once you have your webpack.tests.config.js you can add it to your `Solution Items` virtual folder. 
+Remember that our webpack.config.js has the minimal configuration needed for development and that's exactly what we need so there are just a few changes that we need to do.
+
+First update the entry:
+```js
+// from entry: "./src/Client/Program.fs.js" to:
+entry: "./tests/Client/Program.fs.js",
+```
+Similarly update all the references to `src/Client` to `tests/Client`
+
+Remember that our config will copy the files from the public folder including the index.html file, so you also need to create an index.html file. 
+For this we can just copy paste the index.html file from the Client project.
+
+Now you can run the tests:
+- Run fable to compile the code: `dotnet fable --sourceMaps --cwd tests/Client`
+- Build with webpack: `npx webpack --config webpack.tests.config.js`
+- If you open the dist/index.html file you will see a report in the browser.
+
+We can also run them in one step with watch enabled: 
+- `dotnet fable watch tests/Client --sourceMaps --run webpack-dev-server --config webpack.tests.config.js`
+
+But we now that there is an even better way to run this commands with Fake, so next we are going to add A Target task:
+```f#
+Target.create "ClientTests" (fun _ ->
+    createProcess
+        "dotnet" $"fable watch {clientPath} --sourceMaps --run webpack-dev-server --config webpack.tests.config.js"
+        "."
+    |> runProcess
+    |> ignore)
+```
+And now we can run: `dotnet run ClientTests`
+
 # Todos
-- Add Client Unit tests.
 - Modify the Server unit tests to use Expecto.
 - Clean the project.
 - Add Communication between the client and the server.
