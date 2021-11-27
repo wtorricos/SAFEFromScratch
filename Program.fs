@@ -38,6 +38,13 @@ Target.create "Format" (fun _ ->
     createProcess "dotnet" "fantomas . -r" "./src" |> runProcess |> ignore
 )
 
+Target.create "ClientTests" (fun _ ->
+    createProcess
+        "dotnet" $"fable watch {clientPath} --sourceMaps --run webpack-dev-server --config webpack.tests.config.js"
+        "."
+    |> runProcess
+    |> ignore)
+
 // Define dependencies
 open Fake.Core.TargetOperators
 let dependencies = [
