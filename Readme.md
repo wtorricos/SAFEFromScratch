@@ -1054,9 +1054,144 @@ Use either instead of perform to handle a request error:
 let cmd = Cmd.OfAsync.either greetingApi.greet "Client" GotGreeting ApiError
 ```
 
+# Prod Bundle
+Our project looks great and we are ready to start adding features, however at some point we'll need to deploy to production and we not ready for that yet.
+
+## Update webpack
+- First we need to identify which environment are we using:
+```js
+// The NODE_ENV is passed to npm for example: npm run start --node-env=development
+process.env.NODE_ENV = process.env.NODE_ENV ?? "development";
+const isProduction = process.env.NODE_ENV === 'production';
+const environment = isProduction ? 'production' : 'development';
+console.log('Bundling for ' + environment + '...');
+```
+- Once we know the environment we can start updating the configuration:
+```js
+const CONFIG = {
+    outputDir: "./deploy/public",
+}
+
+module.exports = {
+    mode: environment,
+    devtool: isProduction ? 'source-map' : 'eval-source-map',
+    filename: isProduction ? '[name].[fullhash].js' : '[name].js'
+}
+```
+- Now let's update the plugins and start by adding the [MiniCssExtractPlugin](https://webpack.js.org/plugins/mini-css-extract-plugin/) which extracts CSS into separate files. It creates a CSS file per JS file which contains CSS.
+  - `npm install --save-dev mini-css-extract-plugin`
+  - We are going to add a function to get the plugins depending on the environment:
+```js
+const getPlugins = () => {
+    const commonPlugins = [
+        // The HtmlWebpackPlugin allows us to use a template for the index.html page
+        // and automatically injects <script> or <link> tags for generated bundles.
+        new HtmlWebpackPlugin({
+            filename: 'index.html',
+            template: path.join(__dirname, CONFIG.indexHtmlTemplate)
+        }),
+        // Copies static assets to output directory
+        new CopyPlugin({
+            patterns: [
+                // by default copies to output folder
+                { from: path.join(__dirname, CONFIG.assetsDir) }
+            ],
+        }),
+    ];
+    return isProduction ?
+        [
+            ...commonPlugins,
+
+            // https://webpack.js.org/plugins/mini-css-extract-plugin/
+            // extracts CSS into separate files. It creates a CSS file per JS file which contains CSS.
+            new MiniCssExtractPlugin({ filename: 'style.[name].[fullhash].css' }),
+        ] :
+        commonPlugins;
+}
+
+module.exports = {
+    plugins: getPlugins(),
+}
+```
+  - Finally we need to update our rule loaders:
+```js
+{
+    // The test property identifies which file or files should be transformed.
+    test: /\.(sass|scss|css)$/,
+    // The use property indicates which loader should be used to do the transforming.
+    use: [
+        isProduction ? MiniCssExtractPlugin.loader : 'style-loader',
+        {
+            loader: 'css-loader',
+            options: isProduction ? {} : { sourceMap: true, },
+        },
+        {
+            loader: 'sass-loader',
+            options: isProduction ? {} : { sourceMap: true, },
+        }
+    ]
+}
+```
+- Add optimization to split into chunks, this will prevent having just one big file.
+```js
+module.exports = {
+    optimization: {
+        splitChunks: {
+            chunks: 'all'
+        },
+    },
+}
+```
+- Also we are going to add symlinks false to prevent a previously reported issue with NuGet (don't forget to add this to webpack.tests.config.js as well):
+```js
+resolve: {
+    // See https://github.com/fable-compiler/Fable/issues/1490
+    symlinks: false
+},
+```
+- As a bonus we are going to add another loader, the [file-loader](https://webpack-v3.jsx.app/loaders/file-loader/) which will resolve imported files into a url and will include the files in the output directory.
+  - `npm install file-loader --save-dev`
+  - Add it to the rules:
+```js
+{
+    test: /\.(png|jpg|jpeg|gif|svg|woff|woff2|ttf|eot)(\?.*)?$/,
+    use: ['file-loader']
+}
+```
+  - Now similar to how we import styles you could import a file into your fs Client files.
+```f#
+Fable.Core.JsInterop.importAll "./file.png"
+```
+We are done with the webpack.config.js file however we still need to set the `process.env.NODE_ENV` so it recognizes our environment, for this we are going to update our package.json scripts and pass the `--node-env` parameter.
+```js
+{
+    "scripts": {
+        "build": "webpack --node-env=development",
+            "build:prod": "webpack --node-env=production",
+            "build:tests": "webpack --config webpack.tests.config.js --node-env=development",
+            "start": "webpack-dev-server --node-env=development",
+            "start:tests": "webpack-dev-server --config webpack.tests.config.js --node-env=development"
+    },
+}
+```
+Since our build project uses `npm run` we don't need to make updates to the existing commands however we need a new Bundle task:
+```f#
+Target.create "Bundle" (fun _ ->
+    [ "server", dotnet $"publish -c Release -o \"{deployPath}\"" serverPath
+      "client", dotnet "fable --outDir output --sourceMaps --run npm run build:prod --prefix ../.." clientPath ]
+    |> runParallel
+)
+```
+If you run the `dotnet run Bundle` command you will see our deployment build generated in the deployPath folder!
+However we are going to add a dependency so Bundle depends on the Clean task
+```f#
+"Clean"
+    ==> "Bundle"
+```
+And we don't want to commit the generated files to our repo so don't forget to add `deploy/` to the .gitignore file.
+
 # Todos
-- Add prod configuration to webpack and other missing steps.
-- Add Targets in Fake to create a release version of the app.
+- Add Feliz.Bulma and Fulma
 - Add support to publish the project to Azure with Farmer.
 - Add optional steps to migrate to paket instead of nuget. 
 - Create a dotnet template based on this project. 

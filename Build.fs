@@ -66,14 +66,24 @@ Target.create "RunTests" (fun _ ->
     |> runParallel
 )
 
+Target.create "Bundle" (fun _ ->
+    [ "server", dotnet $"publish -c Release -o \"{deployPath}\"" serverPath
+      "client", dotnet "fable --outDir output --sourceMaps --run npm run build:prod --prefix ../.." clientPath ]
+    |> runParallel
+)
+
 // Define dependencies
 open Fake.Core.TargetOperators
 let dependencies = [
     "Clean"
+        ==> "Bundle"
+
+    "Clean"
         ==> "InstallClient"
         ==> "Run"
 
-    "InstallClient"
+    "CleanAll"
+        ==> "InstallClient"
         ==> "RunTests"
 ]
 
