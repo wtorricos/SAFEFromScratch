@@ -1244,6 +1244,9 @@ let view model dispatch =
     ]
 ```
 
+## Bonus
+Since we are building the SAFE template now we are ready to implement a simple Todos app like the template, but I'll leave this as an extra exercise.
+
 # Todos
 - Add support to publish the project to Azure with Farmer.
 - Add optional steps to migrate to paket instead of nuget. 

@@ -9,7 +9,8 @@ open Expecto
 open Shared
 
 let shared = testList "Shared" [
-    testCase "Test add" <| fun _ ->
-        let actual = Helpers.add 1 2
-        Expect.equal 3 actual "Should be 3"
+    testCase "Empty string is not a valid description" <| fun _ ->
+        let expected = false
+        let actual = Todo.isValid ""
+        Expect.equal actual expected "Should be false"
 ]
