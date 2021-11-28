@@ -24,7 +24,7 @@ let serverIntegrationTests = testList "Server Integration Tests" [
       ()
 ]
 
-let all = testList "All" [ serverUnitTests; serverIntegrationTests ]
+let all = testList "All" [ Shared.Tests.shared; serverUnitTests; serverIntegrationTests ]
 
 [<EntryPoint>]
 let main _ = runTestsWithCLIArgs [] [||] all

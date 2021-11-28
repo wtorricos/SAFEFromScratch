@@ -12,6 +12,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Client\Client.fsproj" />
+    <ProjectReference Include="..\Shared\Shared.Test.fsproj" />
   </ItemGroup>
 
   <ItemGroup>

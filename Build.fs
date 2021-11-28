@@ -34,7 +34,7 @@ Target.create "CleanAll" (fun _ ->
       ("shared", sharedPath)
       ("server:test", serverTestsPath)
       ("client:test", clientTestsPath)
-      //("shared:test", sharedTestsPath)
+      ("shared:test", sharedTestsPath)
       ]
     |> List.map (fun (name, path) -> name, dotnet "clean" path)
     |> runParallel
@@ -60,7 +60,7 @@ Target.create "Run" (fun _ ->
 Target.create "Format" (fun _ -> run dotnet "fantomas . -r" "src")
 
 Target.create "RunTests" (fun _ ->
-    //run dotnet "build" sharedTestsPath
+    run dotnet "build" sharedTestsPath
     [ "server", dotnet "watch run" serverTestsPath
       "client", dotnet "fable watch --outDir output --sourceMaps --run npm run start:tests --prefix ../.." clientTestsPath ]
     |> runParallel

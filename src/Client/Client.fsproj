@@ -3,6 +3,7 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>net6.0</TargetFramework>
+    <DefineConstants>FABLE_COMPILER</DefineConstants>
   </PropertyGroup>
 
   <ItemGroup>
