@@ -1,7 +1,7 @@
-﻿module Client.Tests
+﻿module App.Tests
 
 open Fable.Mocha
-open App
+open Index
 
 let client = testList "Client" [
     testCase "Count starts in 0" <| fun _ ->

@@ -31,7 +31,7 @@ Target.create "Run" (fun _ ->
     createProcess "dotnet" "build" serverPath |> runProcess |> ignore
     createProcess "dotnet" "build" clientPath |> runProcess |> ignore
     [| createProcess "dotnet" "watch run" serverPath
-       createProcess "dotnet" $"fable watch {clientPath} --sourceMaps --run webpack-dev-server" "." |]
+       createProcess "dotnet" "fable watch --outDir output --sourceMaps --run npm run start --prefix ../.." clientPath |]
     |> Array.Parallel.map runProcess
     |> ignore
     )
@@ -43,8 +43,8 @@ Target.create "Format" (fun _ ->
 Target.create "Tests" (fun _ ->
     [| createProcess "dotnet" "watch run" serverTestsPath
        createProcess
-        "dotnet" $"fable watch {clientTestPath} --sourceMaps --run webpack-dev-server --config webpack.tests.config.js"
-        "." |]
+        "dotnet" "fable watch --outDir output --sourceMaps --run npm run start:tests --prefix ../.."
+        clientTestPath |]
     |> Array.Parallel.map runProcess
     |> ignore)
 

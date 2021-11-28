@@ -2,7 +2,9 @@
   "private": true,
   "scripts": {
     "build": "webpack",
-    "start": "webpack-dev-server"
+    "build:tests": "webpack --config webpack.tests.config.js",
+    "start": "webpack-dev-server",
+    "start:tests": "webpack-dev-server --config webpack.tests.config.js"
   },
   "dependencies": {
     "react": "^17.0.2",
@@ -11,6 +13,7 @@
   "devDependencies": {
     "copy-webpack-plugin": "^10.0.0",
     "css-loader": "^6.5.1",
+    "html-webpack-plugin": "^5.5.0",
     "mocha": "^8.3.2",
     "remotedev": "^0.2.9",
     "sass": "^1.43.5",
