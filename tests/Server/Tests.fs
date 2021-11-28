@@ -1,34 +1,30 @@
-module Tests
+module Server.Tests
 
+open System.Net
 open Microsoft.AspNetCore.Mvc.Testing
-open Xunit
+open Expecto
 
 open Main
 
-[<Fact>]
-let ``Greet welcome message`` () =
-    let actual = greet "John"
-    Assert.Equal("Hello John from Saturn!", actual)
+let serverUnitTests = testList "Server Unit tests" [
+    testCase "Greet welcome message" <| fun _ ->
+        let actual = greet "John"
+        Expect.equal "Hello John from Saturn!" actual "Should greet John"
+]
 
 type ServerFixture () =
     inherit WebApplicationFactory<Program>()
 
-type IntegrationTests (factory: ServerFixture) =
-    interface IClassFixture<ServerFixture>
+let server = (new ServerFixture()).Server
+let serverIntegrationTests = testList "Server Integration Tests" [
+    testCase "Get greeting" <| fun _ ->
+      let client = server.CreateClient()
+      let response = client.GetAsync("/api/foo/John").Result
+      Expect.equal HttpStatusCode.OK response.StatusCode "Should be sucessful response"
+      ()
+]
 
-    [<Fact>]
-    member _.``Get greeting`` () =
-        let client = factory.CreateClient()
+let all = testList "All" [ serverUnitTests; serverIntegrationTests ]
 
-        let response = client.GetAsync("/api/foo/John").Result
-
-        response.EnsureSuccessStatusCode()
-
-type IntegrationTests' () =
-    let server = (new ServerFixture()).Server
-
-    [<Fact>]
-    let ``Get greeting`` () =
-        let client = server.CreateClient()
-        let response = client.GetAsync("/api/foo/John").Result
-        response.EnsureSuccessStatusCode()
+[<EntryPoint>]
+let main _ = runTestsWithCLIArgs [] [||] all

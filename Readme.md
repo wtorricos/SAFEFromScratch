@@ -641,8 +641,83 @@ Target.create "ClientTests" (fun _ ->
 ```
 And now we can run: `dotnet run ClientTests`
 
+# Expecto
+Now we are going to add [Expecto](https://github.com/haf/expecto) to the server tests.
+- First add the package: `cd tests/Server` and then `dotnet add package Expecto`
+
+Now you need to update the .fsproj file to be an executable and we can remove xunit since we are not going to use it anymore:
+```xml
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <OutputType>Exe</OutputType>
+        <TargetFramework>net6.0</TargetFramework>
+        <GenerateProgramFile>false</GenerateProgramFile>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <Compile Include="Tests.fs" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Expecto" Version="9.0.4" />
+        <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="6.0.0" />
+        <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.11.0" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\..\src\Server\Server.fsproj" />
+    </ItemGroup>
+
+</Project>
+```
+Not it's turn to update our unit tests and use Expecto instead of XUnit
+```f#
+module Server.Tests
+
+open System.Net
+open Microsoft.AspNetCore.Mvc.Testing
+open Expecto
+
+open Main
+
+let serverUnitTests = testList "Server Unit tests" [
+    testCase "Greet welcome message" <| fun _ ->
+        let actual = greet "John"
+        Expect.equal "Hello John from Saturn!" actual "Should greet John"
+]
+
+type ServerFixture () =
+    inherit WebApplicationFactory<Program>()
+
+let server = (new ServerFixture()).Server
+let serverIntegrationTests = testList "Server Integration Tests" [
+    testCase "Get greeting" <| fun _ ->
+      let client = server.CreateClient()
+      let response = client.GetAsync("/api/foo/John").Result
+      Expect.equal HttpStatusCode.OK response.StatusCode "Should be sucessful response"
+      ()
+]
+
+let all = testList "All" [ serverUnitTests; serverIntegrationTests ]
+
+[<EntryPoint>]
+let main _ = runTestsWithCLIArgs [] [||] all
+```
+You can run your tests with the command: `dotnet watch run`
+
+However we now it's better to add a Fake task for this, so we are going to update the `ClientTests` task to be just `Tests` and we are going to run both Client and Server Tests.
+```f#
+Target.create "Tests" (fun _ ->
+    [| createProcess "dotnet" "watch run" serverTestsPath
+       createProcess
+        "dotnet" $"fable watch {clientTestPath} --sourceMaps --run webpack-dev-server --config webpack.tests.config.js"
+        "." |]
+    |> Array.Parallel.map runProcess
+    |> ignore)
+```
+
 # Todos
-- Modify the Server unit tests to use Expecto.
 - Clean the project.
 - Add Communication between the client and the server.
 - Make Client and Server run Shared project tests.

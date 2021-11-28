@@ -7,6 +7,8 @@ Context.setExecutionContext (Context.RuntimeContext.Fake execContext)
 let serverPath = "./src/Server"
 let clientPath = "./src/Client"
 let clientPathDistFolder = "./src/Client/dist"
+let clientTestPath = "./tests/Client"
+let serverTestsPath = "./tests/Server"
 
 // helper functions to run terminal commands.
 let createProcess exe arg dir =
@@ -38,11 +40,12 @@ Target.create "Format" (fun _ ->
     createProcess "dotnet" "fantomas . -r" "./src" |> runProcess |> ignore
 )
 
-Target.create "ClientTests" (fun _ ->
-    createProcess
-        "dotnet" $"fable watch {clientPath} --sourceMaps --run webpack-dev-server --config webpack.tests.config.js"
-        "."
-    |> runProcess
+Target.create "Tests" (fun _ ->
+    [| createProcess "dotnet" "watch run" serverTestsPath
+       createProcess
+        "dotnet" $"fable watch {clientTestPath} --sourceMaps --run webpack-dev-server --config webpack.tests.config.js"
+        "." |]
+    |> Array.Parallel.map runProcess
     |> ignore)
 
 // Define dependencies
