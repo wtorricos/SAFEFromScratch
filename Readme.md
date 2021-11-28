@@ -895,6 +895,9 @@ let all =
 ```
 Now if you run `dotnet run RunTests` notice how your Shared.Tests are run along with both Client and Server tests.
 
+## Bonus
+Our code looks pretty good now, but let's run fatomas to make sure is well formatted: `dotnet run Format`
+
 # Todos
 - Add Communication between the client and the server.
 - Add prod configuration to webpack and other missing steps.
