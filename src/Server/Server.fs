@@ -35,16 +35,14 @@ let todosApi =
                   | Error e -> return failwith e
               } }
 
-// The type program is used as the entry point for WebApplicationFactory for testing.
-type Program() =
-    let webApp =
-        Remoting.createApi ()
-        |> Remoting.withRouteBuilder Route.builder
-        |> Remoting.fromValue todosApi
-        |> Remoting.buildHttpHandler
+let webApp =
+    Remoting.createApi ()
+    |> Remoting.withRouteBuilder Route.builder
+    |> Remoting.fromValue todosApi
+    |> Remoting.buildHttpHandler
 
-
-    let app = application {
+let app =
+    application {
         url "http://localhost:8085"
         use_router webApp
         // Adds the distributed memory cache https://docs.microsoft.com/en-us/aspnet/core/performance/caching/distributed?view=aspnetcore-6.0
@@ -55,7 +53,7 @@ type Program() =
         use_gzip
     }
 
-    member x.main(_: string array) = run app
+// Server Type is only used in our unit tests to identify this assembly and create a WebApplicationFactory.
+type Server = class end
 
-
-Program().main [||]
+run app
