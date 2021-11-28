@@ -2,43 +2,98 @@
 
 open Elmish
 open Fable.Remoting.Client
-open Feliz
-open Feliz.Bulma
-
 open Shared
 
 Fable.Core.JsInterop.importAll "./Index.scss"
 
-let greetingApi =
-    Remoting.createApi ()
-    |> Remoting.withRouteBuilder Route.builder
-    |> Remoting.buildProxy<IGreetingApi>
-
-type Model = { x: int; Greet: string option }
+type Model = { Todos: Todo list; Input: string }
 
 type Msg =
-    | Increment
-    | Decrement
-    | GotGreeting of string
-    | ApiError of exn
+    | GotTodos of Todo list
+    | SetInput of string
+    | AddTodo
+    | AddedTodo of Todo
 
-let init () =
-    let model = { x = 0; Greet = None }
+let todosApi =
+    Remoting.createApi ()
+    |> Remoting.withRouteBuilder Route.builder
+    |> Remoting.buildProxy<ITodosApi>
 
-    // Queries the greet end point with the "Client" parameter
-    // When it gets the response back it will send the GotGreeting message.
-    let cmd = Cmd.OfAsync.either greetingApi.greet "Client" GotGreeting ApiError
+let init () : Model * Cmd<Msg> =
+    let model = { Todos = []; Input = "" }
+
+    let cmd =
+        Cmd.OfAsync.perform todosApi.getTodos () GotTodos
 
     model, cmd
 
-let update (msg: Msg) (state: Model) =
+let update (msg: Msg) (model: Model) : Model * Cmd<Msg> =
     match msg with
-    | Increment -> { state with x = state.x + 1 }, Cmd.none
-    | Decrement -> { state with x = state.x - 1 }, Cmd.none
-    | GotGreeting msg -> { state with Greet = Some msg }, Cmd.none
-    | ApiError exn -> { state with Greet = Some exn.Message }, Cmd.none
+    | GotTodos todos -> { model with Todos = todos }, Cmd.none
+    | SetInput value -> { model with Input = value }, Cmd.none
+    | AddTodo ->
+        let todo = Todo.create model.Input
 
-let view model dispatch =
+        let cmd =
+            Cmd.OfAsync.perform todosApi.addTodo todo AddedTodo
+
+        { model with Input = "" }, cmd
+    | AddedTodo todo ->
+        { model with
+              Todos = model.Todos @ [ todo ] },
+        Cmd.none
+
+open Feliz
+open Feliz.Bulma
+
+let navBrand =
+    Bulma.navbarBrand.div [
+        Bulma.navbarItem.a [
+            prop.href "https://safe-stack.github.io/"
+            navbarItem.isActive
+            prop.children [
+                Html.img [
+                    prop.src "/favicon.png"
+                    prop.alt "Logo"
+                ]
+            ]
+        ]
+    ]
+
+let containerBox (model: Model) (dispatch: Msg -> unit) =
+    Bulma.box [
+        Bulma.content [
+            Html.ol [
+                for todo in model.Todos do
+                    Html.li [ prop.text todo.Description ]
+            ]
+        ]
+        Bulma.field.div [
+            field.isGrouped
+            prop.children [
+                Bulma.control.p [
+                    control.isExpanded
+                    prop.children [
+                        Bulma.input.text [
+                            prop.value model.Input
+                            prop.placeholder "What needs to be done?"
+                            prop.onChange (fun x -> SetInput x |> dispatch)
+                        ]
+                    ]
+                ]
+                Bulma.control.p [
+                    Bulma.button.a [
+                        color.isPrimary
+                        prop.disabled (Todo.isValid model.Input |> not)
+                        prop.onClick (fun _ -> dispatch AddTodo)
+                        prop.text "Add"
+                    ]
+                ]
+            ]
+        ]
+    ]
+
+let view (model: Model) (dispatch: Msg -> unit) =
     Bulma.hero [
         hero.isFullHeight
         color.isPrimary
@@ -48,6 +103,11 @@ let view model dispatch =
             style.backgroundPosition "no-repeat center center fixed"
         ]
         prop.children [
+            Bulma.heroHead [
+                Bulma.navbar [
+                    Bulma.container [ navBrand ]
+                ]
+            ]
             Bulma.heroBody [
                 Bulma.container [
                     Bulma.column [
@@ -56,16 +116,9 @@ let view model dispatch =
                         prop.children [
                             Bulma.title [
                                 text.hasTextCentered
-                                prop.text (match model.Greet with Some msg -> msg | _ -> "Loading...")
+                                prop.text "SafeHello"
                             ]
-                            Html.div [
-                                Html.button [ prop.onClick (fun _ -> dispatch Increment)
-                                              prop.text "Increment" ]
-
-                                Html.button [ prop.onClick (fun _ -> dispatch Decrement)
-                                              prop.text "Decrement" ]
-
-                                Html.h1 model.x ]
+                            containerBox model dispatch
                         ]
                     ]
                 ]

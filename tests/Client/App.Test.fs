@@ -1,31 +1,29 @@
 ﻿module App.Tests
 
 open Fable.Mocha
+
 open Index
+open Shared
 
 let client = testList "Client" [
-    testCase "Count starts in 0" <| fun _ ->
+    testCase "Added todo" <| fun _ ->
+        let newTodo = Todo.create "new todo"
         let model, _ = init ()
-        Expect.equal 0 model.x "Count should start at 0"
 
-    testCase "Increase increments the count in 1" <| fun _ ->
-        let model, _ = init ()
-        let actual, _ = update Increment model
-        Expect.equal 1 actual.x "Increment should increase the count in 1"
+        let model, _ = update (AddedTodo newTodo) model
 
-    testCase "Decrease decreases the count in 1" <| fun _ ->
-        let model, _ = init ()
-        let actual, _ = update Decrement { model with x = 1 }
-        Expect.equal 0 actual.x "Decrease should decrement the count in 1"
+        Expect.equal 1 model.Todos.Length "There should be 1 todo"
+        Expect.equal newTodo model.Todos.[0] "Todo should equal new todo"
 ]
 
 let all =
-    testList "All" [
-        client
+    testList "All"
+        [
 #if FABLE_COMPILER // This preprocessor directive makes editor happy
-        Shared.Tests.shared
+            Shared.Tests.shared
 #endif
-    ]
+            client
+        ]
 
 [<EntryPoint>]
 let main _ = Mocha.runTests all
