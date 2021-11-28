@@ -12,6 +12,20 @@ const CONFIG = {
     outputDir: "./src/Client/dist",
     assetsDir: './src/Client/public',
     devServerPort: 8080,
+    // When using webpack-dev-server, you may need to redirect some calls
+    // to a external API server. See https://webpack.js.org/configuration/dev-server/#devserver-proxy
+    devServerProxy: {
+        // redirect requests that start with /api/ to the server on port 8085
+        '/api/**': {
+            target: 'http://localhost:' + (process.env.SERVER_PROXY_PORT || "8085"),
+            changeOrigin: true
+        },
+        // redirect websocket requests that start with /socket/ to the server on the port 8085
+        '/socket/**': {
+            target: 'http://localhost:' + (process.env.SERVER_PROXY_PORT || "8085"),
+            ws: true
+        }
+    }
 }
 
 module.exports = {
@@ -34,6 +48,7 @@ module.exports = {
         // hot true automatically adds Hot Module Replacement, no longer needed to add the plugin new webpack.HotModuleReplacementPlugin()
         hot: true,
         port: CONFIG.devServerPort,
+        proxy: CONFIG.devServerProxy,
     },
     plugins: [
         new HtmlWebpackPlugin({

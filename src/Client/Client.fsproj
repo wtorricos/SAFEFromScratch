@@ -21,8 +21,13 @@
     <PackageReference Include="Fable.Elmish.Debugger" Version="3.3.0" />
     <PackageReference Include="Fable.Elmish.HMR" Version="5.1.0" />
     <PackageReference Include="Fable.Elmish.React" Version="3.0.1" />
+    <PackageReference Include="Fable.Remoting.Client" Version="7.16.0" />
     <PackageReference Include="Feliz" Version="1.56.0" />
     <PackageReference Include="Feliz.UseElmish" Version="1.6.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Shared\Shared.fsproj" />
   </ItemGroup>
 
 </Project>

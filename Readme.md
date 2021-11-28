@@ -898,8 +898,163 @@ Now if you run `dotnet run RunTests` notice how your Shared.Tests are run along 
 ## Bonus
 Our code looks pretty good now, but let's run fatomas to make sure is well formatted: `dotnet run Format`
 
+# Client - Server Communication
+In order to send requests from the client to the server we are going to use [Fable.Remoting](https://github.com/Zaid-Ajaj/Fable.Remoting).
+- Add Fable.Remoting.Client to the Client project: `dotnet add src/Client/Client.fsproj package Fable.Remoting.Client`
+- Add Fable.Remoting.Giraffe to the Server project: `dotnet add src/Server/Server.fsproj package Fable.Remoting.Giraffe`
+- Add a shared interface to Shared/Shared.fs
+```f#
+type IGreetingApi = {
+  greet : string -> Async<string>
+}
+```
+- Reference the shared project from the Client and the Server.
+- `dotnet add src/Client/Client.fsproj reference src/Shared/Shared.fsproj`
+- `dotnet add src/Server/Server.fsproj reference src/Shared/Shared.fsproj`
+- Implement the interface in the Server
+```f#
+open Shared
+
+let greet name = sprintf $"Hello {name} from Saturn!"
+let greetingApi = {
+  greet = fun name ->
+    async {
+      return name |> greet
+    }
+}
+```
+- Use the implementation to generate a route
+```f#
+open Saturn
+open Fable.Remoting.Server
+open Fable.Remoting.Giraffe
+
+let greetingsRouter =
+    Remoting.createApi ()
+    |> Remoting.fromValue greetingApi
+    |> Remoting.buildHttpHandler
+
+let app = application { use_router greetingsRouter }
+```
+- Create a proxy in the client that will let you perform requests:
+```f#
+open Fable.Remoting.Client
+open Shared
+
+let greetingApi =
+    Remoting.createApi ()
+    |> Remoting.buildProxy<IGreetingApi>
+```
+- Call the api inside the init function:
+```f#
+type Model = { x: int; Greet: string option }
+
+type Msg =
+    | Increment
+    | Decrement
+    | GotGreeting of string
+
+let init () =
+    let model = { x = 0; Greet = "" }
+
+    // Queries the greet end point with the "Client" parameter
+    // When it gets the response back it will send the GotGreeting message.
+    let cmd = Cmd.OfAsync.perform greetingApi.greet "Client" GotGreeting
+
+    model, cmd
+```
+- You also need to handle the GotGreeting message in the update function:
+```f#
+| GotGreeting msg -> { state with Greet = Some msg }, Cmd.none
+```
+- Finally let's display the message in the view:
+```f#
+Html.h1 (match model.Greet with Some msg -> msg | _ -> "Loading...")
+```
+
+We have our code in place the question is, will it work?
+If you run the tests `dotnet run RunTests` you will see that we already have a failing test (Note: fix any problem you encounter in the tests for the projects to compile.)
+
+We can see that our Server Integration Test fails with NotFound, this is because although we added the endpoint the route changed.
+I'm going to skip one step and go straight to borrow the Router.builder from the SAFE template and add it to the Shared.fs file:
+```f#
+module Route =
+    let builder typeName methodName =
+        sprintf "/api/%s/%s" typeName methodName
+```
+Note: As the implementation suggests this builder will generate routes of the type `/api/IGreetingApi/greet` 
+Now we need to use it in the server to construct our greetingRouter:
+```f#
+let greetingsRouter =
+    Remoting.createApi ()
+    |> Remoting.withRouteBuilder Route.builder
+    |> Remoting.fromValue greetingApi
+    |> Remoting.buildHttpHandler
+```
+Our test is still failing since the route is still different, in this case I'm going to update the test implementation:
+```f#
+let serverIntegrationTests = testList "Server Integration Tests" [
+    testCase "Get greeting" <| fun _ ->
+      let client = server.CreateClient()
+      let content = new StringContent("""["John"]""", Encoding.UTF8);
+      let response = client.PostAsync("/api/IGreetingApi/greet", content).Result
+      Expect.equal HttpStatusCode.Ambiguous response.StatusCode "Should be successful response"
+      ()
+]
+```
+Now our test passes but if we run the application `dotnet run` the request fails, this is because we need to use the same Route.builder for our proxy:
+```f#
+Remoting.createApi ()
+    |> Remoting.withRouteBuilder Route.builder
+    |> Remoting.buildProxy<IGreetingApi>
+```
+Now we have all of our code in place but it still fails, if you check the console you will see that the requests are being performed to the http://localhost:8080 url
+but our server is running in the http://localhost:5000 port.
+- First let's make our server run in the port 8085 like the SAFE one:
+```f#
+let app = application {
+    url "http://localhost:8085"
+    use_router greetingsRouter
+}
+```
+- Now let's make the client sends the request to the correct Server url, for this we are going to modify webpack.config.js and add a server proxy that will route the requests to the correct endpoint:
+```js
+const CONFIG = {
+    /* ... */
+    
+    // When using webpack-dev-server, you may need to redirect some calls
+    // to a external API server. See https://webpack.js.org/configuration/dev-server/#devserver-proxy
+    devServerProxy: {
+        // redirect requests that start with /api/ to the server on port 8085
+        '/api/**': {
+            target: 'http://localhost:' + (process.env.SERVER_PROXY_PORT || "8085"),
+            changeOrigin: true
+        },
+        // redirect websocket requests that start with /socket/ to the server on the port 8085
+        '/socket/**': {
+            target: 'http://localhost:' + (process.env.SERVER_PROXY_PORT || "8085"),
+            ws: true
+        }
+    }
+}
+
+module.exports = {
+    /* ... */
+    devServer: {
+        /* ... */
+        proxy: CONFIG.devServerProxy,
+    },
+}
+```
+If we run the application again `dotnet run` we'll see it working!
+
+## Bonus
+Use either instead of perform to handle a request error:
+```f#
+let cmd = Cmd.OfAsync.either greetingApi.greet "Client" GotGreeting ApiError
+```
+
 # Todos
-- Add Communication between the client and the server.
 - Add prod configuration to webpack and other missing steps.
 - Add Targets in Fake to create a release version of the app.
 - Add support to publish the project to Azure with Farmer.

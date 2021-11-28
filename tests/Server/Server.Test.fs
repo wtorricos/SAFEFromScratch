@@ -1,6 +1,8 @@
 module Server.Tests
 
 open System.Net
+open System.Net.Http
+open System.Text
 open Microsoft.AspNetCore.Mvc.Testing
 open Expecto
 
@@ -19,8 +21,9 @@ let server = (new ServerFixture()).Server
 let serverIntegrationTests = testList "Server Integration Tests" [
     testCase "Get greeting" <| fun _ ->
       let client = server.CreateClient()
-      let response = client.GetAsync("/api/foo/John").Result
-      Expect.equal HttpStatusCode.OK response.StatusCode "Should be sucessful response"
+      let content = new StringContent("""["John"]""", Encoding.UTF8);
+      let response = client.PostAsync("/api/IGreetingApi/greet", content).Result
+      Expect.equal HttpStatusCode.OK response.StatusCode "Should be successful response"
       ()
 ]
 

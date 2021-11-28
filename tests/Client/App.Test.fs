@@ -14,7 +14,8 @@ let client = testList "Client" [
         Expect.equal 1 actual.x "Increment should increase the count in 1"
 
     testCase "Decrease decreases the count in 1" <| fun _ ->
-        let actual, _ = update Decrement { x = 1 }
+        let model, _ = init ()
+        let actual, _ = update Decrement { model with x = 1 }
         Expect.equal 0 actual.x "Decrease should decrement the count in 1"
 ]
 
