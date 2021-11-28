@@ -2,17 +2,16 @@
 
 open Elmish
 open Feliz
+
 Fable.Core.JsInterop.importAll "./Index.scss"
 
-type Model =
-    { x : int }
+type Model = { x: int }
 
 type Msg =
     | Increment
     | Decrement
 
-let init () =
-    { x = 0 }, Cmd.ofMsg Increment
+let init () = { x = 0 }, Cmd.ofMsg Increment
 
 let update (msg: Msg) (state: Model) =
     match msg with
@@ -20,16 +19,10 @@ let update (msg: Msg) (state: Model) =
     | Decrement -> { state with x = state.x - 1 }, Cmd.none
 
 let view model dispatch =
-    Html.div [
-        Html.button [
-            prop.onClick (fun _ -> dispatch Increment)
-            prop.text "Increment"
-        ]
+    Html.div [ Html.button [ prop.onClick (fun _ -> dispatch Increment)
+                             prop.text "Increment" ]
 
-        Html.button [
-            prop.onClick (fun _ -> dispatch Decrement)
-            prop.text "Decrement"
-        ]
+               Html.button [ prop.onClick (fun _ -> dispatch Decrement)
+                             prop.text "Decrement" ]
 
-        Html.h1 model.x
-    ]
+               Html.h1 model.x ]
