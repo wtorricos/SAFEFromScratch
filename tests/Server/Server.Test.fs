@@ -21,16 +21,32 @@ let serverUnitTests = testList "Server" [
         Expect.contains (storage.GetTodos()) validTodo "Storage should contain new todo"
 ]
 
-type ServerFixture () =
-    inherit WebApplicationFactory<Program>()
+open System
+open Microsoft.AspNetCore.Hosting
+open Microsoft.Extensions.DependencyInjection
+/// .Net core utility for integration testing https://docs.microsoft.com/en-us/aspnet/core/test/integration-tests?view=aspnetcore-6.0#customize-webapplicationfactory
+type ServerAppFactory<'T when 'T : not struct> () =
+    inherit WebApplicationFactory<'T>()
+    /// override the CreateHostBuilder method and return the Saturn application
+    override _.CreateHostBuilder () = app
+    /// override ConfigureWebHost to customize the Factory https://docs.microsoft.com/en-us/aspnet/core/test/integration-tests?view=aspnetcore-6.0#customize-webapplicationfactory
+    override _.ConfigureWebHost builder =
+        let configureServices (services : IServiceCollection) = ()
+        builder
+            .UseEnvironment("Test")
+            .ConfigureServices(Action<IServiceCollection> configureServices)
+        |> ignore
 
-let server = (new ServerFixture()).Server
+// We don't have a type for the Program, that's why we added this TestType
+// ServerAppFactory only requires the generic parameter to be defined in the Server Assembly.
+let server = (new ServerAppFactory<Server>()).Server
+
 let serverIntegrationTests = testList "Server Integration Tests" [
     testCase "Get todos" <| fun _ ->
       let client = server.CreateClient()
       let content = new StringContent("", Encoding.UTF8);
       let response = client.PostAsync("/api/ITodosApi/getTodos", content).Result
-      Expect.equal HttpStatusCode.OK response.StatusCode "Should be successful response"
+      Expect.equal response.StatusCode HttpStatusCode.OK "Should be successful response"
       ()
 ]
 

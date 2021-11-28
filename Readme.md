@@ -1244,8 +1244,55 @@ let view model dispatch =
     ]
 ```
 
-## Bonus
+## Bonus 1
 Since we are building the SAFE template now we are ready to implement a simple Todos app like the template, but I'll leave this as an extra exercise.
+
+## Bonus 2
+Instead of using a type Program to in the Server that we use to create our WebApplicationFactory for our integration tests, we are going to use a generic type.
+This way our Server.js will look cleaner:
+```f#
+// Server Type is only used in our unit tests to identify this assembly and create a WebApplicationFactory.
+type Server = class end
+
+let webApp =
+    Remoting.createApi ()
+    |> Remoting.withRouteBuilder Route.builder
+    |> Remoting.fromValue todosApi
+    |> Remoting.buildHttpHandler
+
+let app =
+    application {
+        url "http://0.0.0.0:8085"
+        use_router webApp
+        memory_cache
+        use_static "public"
+        use_gzip
+    }
+
+run app
+```
+Now we need to update our Server.Tests.fs WebApplicationFactory:
+```f#
+open System
+open Microsoft.AspNetCore.Hosting
+open Microsoft.Extensions.DependencyInjection
+/// .Net core utility for integration testing https://docs.microsoft.com/en-us/aspnet/core/test/integration-tests?view=aspnetcore-6.0#customize-webapplicationfactory
+type ServerAppFactory<'T when 'T : not struct> () =
+    inherit WebApplicationFactory<'T>()
+    /// override the CreateHostBuilder method and return the Saturn application
+    override _.CreateHostBuilder () = app
+    /// override ConfigureWebHost to customize the Factory https://docs.microsoft.com/en-us/aspnet/core/test/integration-tests?view=aspnetcore-6.0#customize-webapplicationfactory
+    override _.ConfigureWebHost builder =
+        let configureServices (services : IServiceCollection) = ()
+        builder
+            .UseEnvironment("Test")
+            .ConfigureServices(Action<IServiceCollection> configureServices)
+        |> ignore
+
+// We don't have a type for the Program, that's why we added the Server Type.
+// ServerAppFactory only requires the generic parameter to be defined in the Server Assembly so this works as expected.
+let server = (new ServerAppFactory<Server>()).Server
+```
 
 # Todos
 - Add support to publish the project to Azure with Farmer.
