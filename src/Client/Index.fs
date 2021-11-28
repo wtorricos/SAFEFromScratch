@@ -3,6 +3,8 @@
 open Elmish
 open Fable.Remoting.Client
 open Feliz
+open Feliz.Bulma
+
 open Shared
 
 Fable.Core.JsInterop.importAll "./Index.scss"
@@ -37,13 +39,36 @@ let update (msg: Msg) (state: Model) =
     | ApiError exn -> { state with Greet = Some exn.Message }, Cmd.none
 
 let view model dispatch =
-    Html.div [
-        Html.h1 (match model.Greet with Some msg -> msg | _ -> "Loading...")
+    Bulma.hero [
+        hero.isFullHeight
+        color.isPrimary
+        prop.style [
+            style.backgroundSize "cover"
+            style.backgroundImageUrl "https://unsplash.it/1200/900?random"
+            style.backgroundPosition "no-repeat center center fixed"
+        ]
+        prop.children [
+            Bulma.heroBody [
+                Bulma.container [
+                    Bulma.column [
+                        column.is6
+                        column.isOffset3
+                        prop.children [
+                            Bulma.title [
+                                text.hasTextCentered
+                                prop.text (match model.Greet with Some msg -> msg | _ -> "Loading...")
+                            ]
+                            Html.div [
+                                Html.button [ prop.onClick (fun _ -> dispatch Increment)
+                                              prop.text "Increment" ]
 
-        Html.button [ prop.onClick (fun _ -> dispatch Increment)
-                      prop.text "Increment" ]
+                                Html.button [ prop.onClick (fun _ -> dispatch Decrement)
+                                              prop.text "Decrement" ]
 
-        Html.button [ prop.onClick (fun _ -> dispatch Decrement)
-                      prop.text "Decrement" ]
-
-        Html.h1 model.x ]
+                                Html.h1 model.x ]
+                        ]
+                    ]
+                ]
+            ]
+        ]
+    ]
