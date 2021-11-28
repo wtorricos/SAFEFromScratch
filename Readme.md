@@ -831,6 +831,10 @@ Additionally for the test project now that we are using HtmlWebpackPlugin we can
 </html>
 ```
 
+## Server
+The server is going to be really easy, just rename src/Server/Program.fs to src/Server/Server.fs and tests/Server/Tests.fs to tests/Server/Server.Tests.fs 
+
+
 # Todos
 - Add Communication between the client and the server.
 - Make Client and Server run Shared project tests.

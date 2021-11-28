@@ -4,7 +4,7 @@ open System.Net
 open Microsoft.AspNetCore.Mvc.Testing
 open Expecto
 
-open Main
+open Server
 
 let serverUnitTests = testList "Server Unit tests" [
     testCase "Greet welcome message" <| fun _ ->
