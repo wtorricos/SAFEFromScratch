@@ -717,8 +717,121 @@ Target.create "Tests" (fun _ ->
     |> ignore)
 ```
 
+# Clean the project
+We are in really good shape now, we finished setting up the client and the server and we are ready to start adding some features.
+However we added a bunch of small changes and we need to clean the project a little bit so it's more maintainable.
+## Webpack
+Let's start by cleaning our webpack configuration, for this we are just going to take the hardcoded paths and take them to a CONFIG object.
+```js
+const CONFIG = {
+    fsharpEntry: "./src/Client/Program.fs.js",
+    outputDir: "./src/Client/dist",
+    assetsDir: './src/Client/public',
+    devServerPort: 8080,
+}
+```
+
+## Client
+For the client we are actually going to split the Program.fs project in two: App.fs and Index.fs
+
+Move the setup of Elmish to run the application to App.fs
+```f#
+module App
+
+open Elmish
+open Elmish.React
+
+#if DEBUG
+// integration for Remote DevTools like Redux dev tools. https://github.com/elmish/debugger
+open Elmish.Debug
+//  always include open Elmish.HMR after your others open Elmish.XXX statements. This is needed to shadow the supported APIs.
+open Elmish.HMR
+#endif
+
+Program.mkProgram Index.init Index.update Index.view
+#if DEBUG
+|> Program.withConsoleTrace
+#endif
+|> Program.withReactSynchronous "elmish-app"
+#if DEBUG
+|> Program.withDebugger
+#endif
+|> Program.run
+```
+Now rename Program.fs to Index.fs and rename the module App to Index, you may want to update Program.scss to Index.scss and update the import as well.
+
+Don't forget to update the Unit tests for the client as well, now you need to open the Index module instead of the App module.
+Also it would be better to rename tests/Client/Program.fs to App.Test.fs. 
+
+Looking a lot better now, however we are going to have some problems with webpack since webpack is going to look for Program.fs.js which will no longer be generated.
+
+For this we are going to go one step further and we are going to use the [html-webpack-plugin](https://github.com/jantimon/html-webpack-plugin) which will add the bundled js and css files to the index.html page for us.
+- Move index.html back to root folder of the Client project.
+- Install the plugin: `npm install --save-dev html-webpack-plugin`
+
+Update webpack.config.js
+- First load the plugin and add a new configuration for the index.html path and update the fsharpEntry.
+```js
+var HtmlWebpackPlugin = require('html-webpack-plugin');
+
+const CONFIG = {
+    // The tags to include the generated JS and CSS will be automatically injected in the HTML template
+    // See https://github.com/jantimon/html-webpack-plugin
+    indexHtmlTemplate: './src/Client/index.html',
+    fsharpEntry: "./src/Client/App.fs.js",
+    /* ... */
+}
+```
+- Use the plugin:
+```js
+plugins: [
+        new HtmlWebpackPlugin({
+            filename: 'index.html',
+            template: path.join(__dirname, CONFIG.indexHtmlTemplate)
+        }),
+        /* ... */
+]
+```
+- We no longer need to manually load the bundle.js file inside index.html, so you can remove the following line:
+```html
+<script src="bundle.js"></script>
+```
+
+So far so good, the client is looking a lot better but as we keep adding more files fable will generate more files as well and it will pollute our Client folder, 
+so let's update our Target task to use a specific folder that we'll call output.
+- Update the Target Run task to use the output folder:
+```f#
+Target.create "Run" (fun _ ->
+    (* ... *)
+       createProcess "dotnet" "fable watch --outDir output --sourceMaps --run npm run start --prefix ../.." clientPath
+    (* ... *)
+    )
+```
+- Note that we are now running `npm run start` to run webpack, this is an improvement that will let us better customize the start task in the package.json file if necessary.
+- Now update the fsharpEntry:
+```js
+const CONFIG = {
+    fsharpEntry: "./src/Client/output/App.js",
+    /* ... */
+}
+```
+Now repeat the same steps to update the webpack.tests.config.js and test Target task.
+
+Additionally for the test project now that we are using HtmlWebpackPlugin we can simplify the index.html file a lot since we no longer need to load anything manually:
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>SafeHello Client Tests</title>
+</head>
+
+<body>
+</body>
+
+</html>
+```
+
 # Todos
-- Clean the project.
 - Add Communication between the client and the server.
 - Make Client and Server run Shared project tests.
 - Add prod configuration to webpack and other missing steps.

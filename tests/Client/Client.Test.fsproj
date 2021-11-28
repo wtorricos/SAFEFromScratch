@@ -6,8 +6,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Include="Program.fs" />
-    <Content Include="public\index.html" />
+    <Compile Include="App.Test.fs" />
+    <Content Include="index.html" />
   </ItemGroup>
 
   <ItemGroup>

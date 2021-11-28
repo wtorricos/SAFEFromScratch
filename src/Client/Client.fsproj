@@ -6,9 +6,11 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Include="Program.fs" />
-    <Content Include="public\index.html" />
-    <Content Include="Program.scss" />
+    <Content Include="public\favicon.png" />
+    <Compile Include="Index.fs" />
+    <Content Include="index.html" />
+    <Content Include="Index.scss" />
+    <Compile Include="App.fs" />
   </ItemGroup>
 
   <ItemGroup>
