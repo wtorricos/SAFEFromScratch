@@ -834,6 +834,10 @@ Additionally for the test project now that we are using HtmlWebpackPlugin we can
 ## Server
 The server is going to be really easy, just rename src/Server/Program.fs to src/Server/Server.fs and tests/Server/Tests.fs to tests/Server/Server.Tests.fs 
 
+## Build 
+Although our Build project works great, the SAFE template added some really cool helpers to print with color and some high order functions to execute commands.
+Instead of implementing them one by one I'm just going to copy the Helpers.fs file from the SAFE template and add some comments and small modifications that may help you review it.
+Finally we are going to use this helper functions to simplify our Target tasks.
 
 # Todos
 - Add Communication between the client and the server.
