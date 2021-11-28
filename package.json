@@ -8,6 +8,7 @@
     "start:tests": "webpack-dev-server --config webpack.tests.config.js --node-env=development"
   },
   "dependencies": {
+    "bulma": "^0.9.3",
     "react": "^17.0.2",
     "react-dom": "^17.0.2"
   },

@@ -1190,8 +1190,61 @@ However we are going to add a dependency so Bundle depends on the Clean task
 ```
 And we don't want to commit the generated files to our repo so don't forget to add `deploy/` to the .gitignore file.
 
+# Feliz.Bulma
+Now we are going to add [Feliz.Bulma](https://dzoukr.github.io/Feliz.Bulma/#/) and we are going to improve our UI.
+- Install Feliz.Bulma with femto: `dotnet femto install Feliz.Bulma`
+- Import the bulma styles
+  - One option is to just import it inside the index.scss file
+```scss
+@import "~bulma";
+```
+  - Other option is to add the link to the cnd in the index.html page:
+```html
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.3/css/bulma.min.css">
+```
+  - For this project I'm going to stick with the first option.
+Now we can start using feliz:
+```f#
+open Feliz
+open Feliz.Bulma
+
+let view model dispatch =
+    Bulma.hero [
+        hero.isFullHeight
+        color.isPrimary
+        prop.style [
+            style.backgroundSize "cover"
+            style.backgroundImageUrl "https://unsplash.it/1200/900?random"
+            style.backgroundPosition "no-repeat center center fixed"
+        ]
+        prop.children [
+            Bulma.heroBody [
+                Bulma.container [
+                    Bulma.column [
+                        column.is6
+                        column.isOffset3
+                        prop.children [
+                            Bulma.title [
+                                text.hasTextCentered
+                                prop.text (match model.Greet with Some msg -> msg | _ -> "Loading...")
+                            ]
+                            Html.div [
+                                Html.button [ prop.onClick (fun _ -> dispatch Increment)
+                                              prop.text "Increment" ]
+
+                                Html.button [ prop.onClick (fun _ -> dispatch Decrement)
+                                              prop.text "Decrement" ]
+
+                                Html.h1 model.x ]
+                        ]
+                    ]
+                ]
+            ]
+        ]
+    ]
+```
+
 # Todos
-- Add Feliz.Bulma and Fulma
 - Add support to publish the project to Azure with Farmer.
 - Add optional steps to migrate to paket instead of nuget. 
 - Create a dotnet template based on this project. 
