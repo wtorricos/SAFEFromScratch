@@ -40,6 +40,10 @@ module.exports = {
             template: path.join(__dirname, CONFIG.indexHtmlTemplate)
         })
     ],
+    resolve: {
+        // See https://github.com/fable-compiler/Fable/issues/1490
+        symlinks: false
+    },
     module: {
         // Loaders allow webpack to process files other than JS and convert them into valid
         // modules that can be consumed by your application and added to the dependency graph

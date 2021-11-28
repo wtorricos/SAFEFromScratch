@@ -1,10 +1,11 @@
 {
   "private": true,
   "scripts": {
-    "build": "webpack",
-    "build:tests": "webpack --config webpack.tests.config.js",
-    "start": "webpack-dev-server",
-    "start:tests": "webpack-dev-server --config webpack.tests.config.js"
+    "build": "webpack --node-env=development",
+    "build:prod": "webpack --node-env=production",
+    "build:tests": "webpack --config webpack.tests.config.js --node-env=development",
+    "start": "webpack-dev-server --node-env=development",
+    "start:tests": "webpack-dev-server --config webpack.tests.config.js --node-env=development"
   },
   "dependencies": {
     "react": "^17.0.2",
@@ -13,7 +14,9 @@
   "devDependencies": {
     "copy-webpack-plugin": "^10.0.0",
     "css-loader": "^6.5.1",
+    "file-loader": "^6.2.0",
     "html-webpack-plugin": "^5.5.0",
+    "mini-css-extract-plugin": "^2.4.5",
     "mocha": "^8.3.2",
     "remotedev": "^0.2.9",
     "sass": "^1.43.5",
