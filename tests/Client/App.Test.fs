@@ -18,7 +18,13 @@ let client = testList "Client" [
         Expect.equal 0 actual.x "Decrease should decrement the count in 1"
 ]
 
-let all = testList "All" [ client ]
+let all =
+    testList "All" [
+        client
+#if FABLE_COMPILER // This preprocessor directive makes editor happy
+        Shared.Tests.shared
+#endif
+    ]
 
 [<EntryPoint>]
 let main _ = Mocha.runTests all

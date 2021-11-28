@@ -13,7 +13,7 @@ First we are going to create the solution and the main projects.
   - Server Project:
     - `dotnet new console --output src/Server -lang F#`
   - Shared Project:
-    - `dotnet new console --output src/Shared -lang F#`
+    - `dotnet new classlib --output src/Shared -lang F#`
   - Add projects to the solution:
     - `dotnet sln SafeFromScratch.sln add src/Client/Client.fsproj src/Server/Server.fsproj src/Shared/Shared.fsproj`
   - .gitignore
@@ -839,12 +839,66 @@ Although our Build project works great, the SAFE template added some really cool
 Instead of implementing them one by one I'm just going to copy the Helpers.fs file from the SAFE template and add some comments and small modifications that may help you review it.
 Finally we are going to use this helper functions to simplify our Target tasks.
 
+## Shared tests
+Add the shared tests project for completeness.
+The Shared project is referenced by both Client and Server, so it also needs to be run in both environments.
+For this reason we create the project as a library that we'll reference in both test projects as well.
+- Add the project: `dotnet new classlib --output tests/Shared -lang F# --name Shared.Test`
+- Add it to the solution: `dotnet sln SafeFromScratch.sln add tests/Shared/Shared.Test.fsproj`
+- Since this project is going to run in both Client and Server we are going to add both Expecto and Fable.Mocha.
+  - `cd tests/Shared`
+  - Install Fable.Mocha with femto: `dotnet femto install Fable.Mocha`
+  - Add Expecto package: `dotnet add package Expecto`
+- Add a reference to the shared project: `dotnet add reference ..\..\src\Shared\Shared.fsproj`
+- Add Shared.Tests.fs (Note that I added a simple `let add a b = a + b` function in shared that we can test. )
+```f#
+module Shared.Tests
+
+#if FABLE_COMPILER
+open Fable.Mocha
+#else
+open Expecto
+#endif
+
+open Shared
+
+let shared = testList "Shared" [
+    testCase "Test add" <| fun _ ->
+        let actual = Helpers.add 1 2
+        Expect.equal 3 actual "Should be 3"
+]
+```
+- Pay attention to this line `#if FABLE_COMPILER` for this preprocessor directive to work we need to add it to the Client.fsproj file
+```html
+<PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net6.0</TargetFramework>
+    <DefineConstants>FABLE_COMPILER</DefineConstants>
+  </PropertyGroup>
+```
+- This way whenever the Client.fsproj is included (inside Client.Tests.fsproj for example) this directive will be present.
+- Now it's time to include our tests along the Client and Server tests, for this you need to add a reference to the Shared.Test project in both test projects.
+
+Server.Tests.fs
+```f#
+let all = testList "All" [ Shared.Tests.shared; serverUnitTests; serverIntegrationTests ]
+```
+Client.Tests.fs
+```f#
+let all =
+    testList "All" [
+        client
+#if FABLE_COMPILER // This preprocessor directive makes editor happy
+        Shared.Tests.shared
+#endif
+    ]
+```
+Now if you run `dotnet run RunTests` notice how your Shared.Tests are run along with both Client and Server tests.
+
 # Todos
 - Add Communication between the client and the server.
-- Make Client and Server run Shared project tests.
 - Add prod configuration to webpack and other missing steps.
 - Add Targets in Fake to create a release version of the app.
-- Refactor Fake (probably just copy the helpers from SAFE template)
 - Add support to publish the project to Azure with Farmer.
 - Add optional steps to migrate to paket instead of nuget. 
 - Create a dotnet template based on this project. 
