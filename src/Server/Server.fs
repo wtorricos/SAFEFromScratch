@@ -1,6 +1,5 @@
-﻿module Main
+﻿module Server
 
-open System
 open Giraffe
 open Saturn
 
