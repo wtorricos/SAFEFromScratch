@@ -31,7 +31,7 @@ type ServerAppFactory<'T when 'T : not struct> () =
     override _.CreateHostBuilder () = app
     /// override ConfigureWebHost to customize the Factory https://docs.microsoft.com/en-us/aspnet/core/test/integration-tests?view=aspnetcore-6.0#customize-webapplicationfactory
     override _.ConfigureWebHost builder =
-        let configureServices (services : IServiceCollection) = ()
+        let configureServices (_: IServiceCollection) = ()
         builder
             .UseEnvironment("Test")
             .ConfigureServices(Action<IServiceCollection> configureServices)

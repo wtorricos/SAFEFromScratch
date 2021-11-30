@@ -1,6 +1,6 @@
 # SAFE template from scratch
 In this guide we'll start from a blank project and start adding functionality so we can get a template similar to the [SAFE Template](https://safe-stack.github.io/docs/quickstart/), this way you will understand the role of every file and dependency.
-You can follow this guide from top to bottom or you can review it with the git history as every step correspond to a commit that has the described changes.
+You can follow this guide from top to bottom or you can review it with the git history as every step corresponds to a commit that has the described changes.
 
 Note that one difference with the SAFE template is that in this project we'll use .net6.0, along with the latest version of dotnet tools, npm packages and nuget packages while SAFE may not be in the latest version of some of them, for this reason some small differences may be seen.
 
@@ -31,6 +31,7 @@ Note that one difference with the SAFE template is that in this project we'll us
 - [19. Feliz.Bulma](#feliz-bulma)
 - [20. Publish the application](#publish)
 - [21. Paket optional](#paket)
+- [22. Warning as Error](#warn-as-error)
 
 #<h1 id="solution">Create the solution and projects</h1>
 
@@ -1404,6 +1405,21 @@ paket-files/
 ```
 That's it! now you can try to run your tests `dotnet run RunTests` or run the app `dotnet run`
 If you want to review this step checkout the paket branch.
+
+#<h1 id="warn-as-error">Warnings as Errors Bonus</h1>
+What a best way to keep your project in shape that preventing warnings from taking over your project.
+For this we just need to add the following line `<TreatWarningsAsErrors>true</TreatWarningsAsErrors>` to all of our .fsproj projects.
+
+Server.fsproj example:
+```xml
+<PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net6.0</TargetFramework>
+    <!-- https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-options/errors-warnings#treatwarningsaserrors -->
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+</PropertyGroup>
+```
+This will force you to write better code and for example handle all scenarios for a discriminated union when using pattern matching.
 
 # Todos
 - Create a dotnet template based on this project. 

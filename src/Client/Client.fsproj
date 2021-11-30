@@ -3,7 +3,16 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>net6.0</TargetFramework>
+    <!-- Directive used to identify this project and that the fable compiler is present.
+        It can be used like this:
+        #if FABLE_COMPILER
+            /*your code*/
+        #endif
+        For a practical example review the Client.Test/App.Tests.fs file.
+    -->
     <DefineConstants>FABLE_COMPILER</DefineConstants>
+    <!-- https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-options/errors-warnings#treatwarningsaserrors -->
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
   </PropertyGroup>
 
   <ItemGroup>
