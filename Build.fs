@@ -72,6 +72,25 @@ Target.create "Bundle" (fun _ ->
     |> runParallel
 )
 
+open Farmer
+open Farmer.Builders
+// In order to execute the Azure task you need to install and log into the azure cli https://docs.microsoft.com/en-us/cli/azure/get-started-with-azure-cli
+// Find more about farmer here: https://compositionalit.github.io/farmer/quickstarts/quickstart-3/
+Target.create "Azure" (fun _ ->
+    let web = webApp {
+        name "SafeHello"
+        zip_deploy "deploy"
+    }
+    let deployment = arm {
+        location Location.WestEurope
+        add_resource web
+    }
+
+    deployment
+    |> Deploy.execute "SafeHello" Deploy.NoParameters
+    |> ignore
+)
+
 // Define dependencies
 open Fake.Core.TargetOperators
 let dependencies = [
@@ -85,6 +104,11 @@ let dependencies = [
     "CleanAll"
         ==> "InstallClient"
         ==> "RunTests"
+
+    "Clean"
+        ==> "InstallClient"
+        ==> "Bundle"
+        ==> "Azure"
 ]
 
 // The entry point allows us to run any task defined as a Target with the help of dotnet.

@@ -13,6 +13,7 @@
   <ItemGroup>
     <PackageReference Include="Fake.Core.Target" Version="5.20.4" />
     <PackageReference Include="Fake.IO.FileSystem" Version="5.20.4" />
+    <PackageReference Include="Farmer" Version="1.6.21" />
   </ItemGroup>
 
 </Project>
