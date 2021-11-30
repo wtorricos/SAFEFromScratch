@@ -1294,6 +1294,52 @@ type ServerAppFactory<'T when 'T : not struct> () =
 let server = (new ServerAppFactory<Server>()).Server
 ```
 
+# Publish the application
+We have a working application, so it's time to publish it!
+We are going to publish the application to Azure Apps using [Farmer](https://compositionalit.github.io/farmer/)
+- Start by adding Farmer to the build project: `dotnet add package Farmer`
+- Add a Target task in the Build.fs file called Azure:
+```f#
+open Farmer
+open Farmer.Builders
+
+Target.create "Azure" (fun _ ->
+    let web = webApp {
+        name "SafeHello" // the name of the app
+        zip_deploy "deploy" // deploy the deploy folder as zip
+    }
+    let deployment = arm {
+        location Location.WestEurope // location of the resource
+        add_resource web
+    }
+
+    // generate json file
+    deployment
+    |> Writer.quickWrite "SafeHello"
+)
+```
+-  Update the dependencies and add one entry for the tasks that need to run before the Azure task:
+```f#
+let dependencies = [
+    "Clean"
+        ==> "InstallClient"
+        ==> "Bundle"
+        ==> "Azure"
+]
+```
+- Run the task `dotnet run Azure`
+- The application was not published but a SafeHello.json file was generated, this is because we specified that:
+```f#
+deployment |> Writer.quickWrite "SafeHello"
+```
+- To actually deploy to azure you need to change that line for:
+```f#
+deployment
+|> Deploy.execute "SafeHello" Deploy.NoParameters
+|> ignore
+```
+- Note that you need to install and be logged into the [azure cli](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli-windows?tabs=azure-cli), for more information in how to complete the deploy review the official [Farmer](https://compositionalit.github.io/farmer/quickstarts/quickstart-3/) docs.
+
 # Todos
 - Add support to publish the project to Azure with Farmer.
 - Add optional steps to migrate to paket instead of nuget. 
