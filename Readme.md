@@ -111,7 +111,7 @@ First create the project:
   - you can run tests with: `dotnet test`
   - Reference the server project: `dotnet add reference ..\..\src\Server\Server.fsproj`
 
-<h1 id="server-integration-tests">Server Integration Tests</h1>
+#<h1 id="server-integration-tests">Server Integration Tests</h1>
 
 Optionally you can add integration tests to the server.
   - Integration testing with [WebApplicationFactory](https://docs.microsoft.com/en-us/aspnet/core/test/integration-tests?view=aspnetcore-6.0#test-app-prerequisites), some examples:
@@ -165,7 +165,7 @@ type IntegrationTests' () =
 ```
 Note that you can override different methods of the WebApplication factory to customize the setup for your tests.
 
-#<h1 id="fable">Fable<h1/>
+#<h1 id="fable">Fable</h1>
 
 First we need to install the fable compiler. 
 
