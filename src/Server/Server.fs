@@ -31,12 +31,12 @@ let storage = Storage()
 let todosApi =
     { getTodos = fun () -> async { return storage.GetTodos() }
       addTodo =
-          fun todo ->
-              async {
-                  match storage.AddTodo todo with
-                  | Ok () -> return todo
-                  | Error e -> return failwith e
-              } }
+        fun todo ->
+            async {
+                match storage.AddTodo todo with
+                | Ok () -> return todo
+                | Error e -> return failwith e
+            } }
 
 let todoApi =
     Remoting.createApi ()
@@ -46,17 +46,19 @@ let todoApi =
 
 let appRouter =
     router {
-        get
-            "/config"
-            (fun next ctx ->
-                let config = ctx.GetService<IConfiguration>()
-                let conn = config.["ConnectionStrings:Default"]
-                let env = config.["ASPNETCORE_ENVIRONMENT"]
+        get "/config" (fun next ctx ->
+            let config =
+                ctx.GetService<IConfiguration>()
 
-                let config =
-                    $"appsettings.json connection string: {conn}\nlaunchSettings environment: {env}"
+            let conn =
+                config.["ConnectionStrings:Default"]
 
-                text config next ctx)
+            let env = config.["ASPNETCORE_ENVIRONMENT"]
+
+            let config =
+                $"appsettings.json connection string: {conn}\nlaunchSettings environment: {env}"
+
+            text config next ctx)
 
         forward "" todoApi
     }

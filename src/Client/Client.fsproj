@@ -24,14 +24,14 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Fable.Browser.DOM" Version="2.7.0" />
-    <PackageReference Include="Fable.Core" Version="3.6.0" />
+    <PackageReference Include="Fable.Browser.DOM" Version="2.10.0" />
+    <PackageReference Include="Fable.Core" Version="3.6.2" />
     <PackageReference Include="Fable.Elmish" Version="3.1.0" />
     <PackageReference Include="Fable.Elmish.Debugger" Version="3.3.0" />
-    <PackageReference Include="Fable.Elmish.HMR" Version="5.1.0" />
+    <PackageReference Include="Fable.Elmish.HMR" Version="5.2.0" />
     <PackageReference Include="Fable.Elmish.React" Version="3.0.1" />
-    <PackageReference Include="Fable.Remoting.Client" Version="7.16.0" />
-    <PackageReference Include="Feliz" Version="1.56.0" />
+    <PackageReference Include="Fable.Remoting.Client" Version="7.19.0" />
+    <PackageReference Include="Feliz" Version="1.61.0" />
     <PackageReference Include="Feliz.Bulma" Version="2.18.0" />
     <PackageReference Include="Feliz.UseElmish" Version="1.6.0" />
   </ItemGroup>

@@ -105,11 +105,14 @@ module.exports = function(env, arg) {
                     test: /\.(sass|scss|css)$/,
                     // The use property indicates which loader should be used to do the transforming.
                     use: [
+                        // Creates `style` nodes from JS strings
                         isProduction ? MiniCssExtractPlugin.loader : 'style-loader',
+                        // Translates CSS into CommonJS
                         {
                             loader: 'css-loader',
                             options: isProduction ? {} : { sourceMap: true, },
                         },
+                        // Compiles Sass to CSS
                         {
                             loader: 'sass-loader',
                             options: isProduction ? {} : { sourceMap: true, },

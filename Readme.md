@@ -2,13 +2,15 @@
 In this guide we'll start from a blank project and start adding functionality so we can get a template similar to the [SAFE Template](https://safe-stack.github.io/docs/quickstart/), this way you will understand the role of every file and dependency.
 You can follow this guide from top to bottom or you can review it with the git history as every step corresponds to a commit that has the described changes.
 
-Note that one difference with the SAFE template is that in this project we'll use .net6.0, along with the latest version of dotnet tools, npm packages and nuget packages while SAFE may not be in the latest version of some of them, for this reason some small differences may be seen.
+Note that there may be some small differences and bonuses that I added, however after reading and understanding the template I encourage you to use/contribute to the [official template](https://github.com/SAFE-Stack/SAFE-template).
+
+Disclaimer: The main focus of this tutorial is to be easy to follow and to have the commits as guidelines. For this reason I'm going to squash commits and rearrange the history to remove noise and to keep it clean for new readers. If you are a contributor I really appreciate your help and I apologize in advance for the problems this may cause you.  
 
 # List of contents
 - [1. Create the solution and projects](#solution)
 - [2. Saturn](#saturn)
 - [3. Server Unit tests](#server-unit-tests)
-- [4. Server Integration Tests](#server-integration-tests)
+- [4. Server Integration Tests Bonus](#server-integration-tests)
 - [5. Fable](#fable)
 - [6. Create a bundle with Webpack](#webpack-bundle)
 - [7. Webpack plugins](#webpack-plugins)
@@ -26,12 +28,15 @@ Note that one difference with the SAFE template is that in this project we'll us
   - 16.3 Server
   - 16.4 Build
   - 16.5 Shared tests
+  - 16.6 Run fantomas
 - [17. Client-Server Communication](#client-server-communication)
 - [18. Prod Bundle](#prod-bundle)
 - [19. Feliz.Bulma](#feliz-bulma)
+  - 19.1 Replicate todo app from SAFE template
+  - 19.2 Alternative way to setup integration tests
 - [20. Publish the application](#publish)
-- [21. Paket optional](#paket)
-- [22. Bonus](#bonus)
+- [21. Paket](#paket)
+- [22. Bonus](#bonus-content)
   - 22.1 Warning as Error 
   - 22.2 Server Configuration
   - 22.3 Webpack Refactoring 2
@@ -40,13 +45,27 @@ Note that one difference with the SAFE template is that in this project we'll us
   - 22.6 Fantomas Settings
 - [23. Final Thoughts](#final-thoughts)
 
+# Pre-requisites
+You need to install the following things before proceeding:
+1. .NET Core SDK (For this tutorial I used [.Net Core 6.0](https://dotnet.microsoft.com/en-us/download/dotnet/6.0))
+2. [Node LTS](https://nodejs.org/en/)
+
+# Test the repo in your machine
+I highly recommend you to clone the repository, this way you will be able to review each commit and the changes that are involved.
+1. Clone the repo `git clone https://github.com/tico321/SAFEFromScratch.git`
+2. Test that it works:
+  - In the root folder run `dotnet tool restore` (You will learn about these tools when you get to the [5. Fable](#fable) section)
+  - Now in the same folder run `dotnet run` (You will learn how we run multiple tasks when you get to the [10. Fake Build](#fake-build) section) 
+  - The previous command runs the Client and the Server, so you can navigate to [http://localhost:8080](http://localhost:8080) in your browser to test that everything is working.
+
 <h1 id="solution">Create the solution and projects</h1>
 
 First we are going to create the solution and the main projects.
+  - Start by creating an empty folder for your project, I'm going to refer to this folder as the root folder, and then add the following items to this folder:
   - Create the solution: $ `dotnet new sln --name SafeFromScratch`
   - src folder: $ `mkdir src`
   - Client Project: 
-    - create project (by default the folder name is used): `dotnet new console --output src/Server -lang F#`
+    - create project (by default the folder name is used): `dotnet new console --output src/Client -lang F#`
   - Server Project:
     - `dotnet new console --output src/Server -lang F#`
   - Shared Project:
@@ -61,7 +80,7 @@ First we are going to create the solution and the main projects.
       - Create a virtual directory to easily navigate from an IDE: Add -> New Solution Folder -> `Solution Items`
       - Right click on `Solution Items` folder -> Add -> existing items -> .gitignore
       - Right click on `Solution Items` folder -> Add -> existing items -> Readme.md
-```
+```gitignore
 # .gitignore
 
 # Ignore IDE files
@@ -83,11 +102,15 @@ bin/
 # Mac files
 *DS_Store
 ```
-# Saturn
+
+<h1 id="saturn">Saturn</h1>
+
 Add [Saturn](https://saturnframework.org/) package to the server project. 
-  - $ `cd src/Server`
-  - `dotnet add package Saturn`
-Edit Program.fs with a minimal implementation that exposes an endpoint.
+  - Move to the server project and add the package. (You can use an IDE if it's simpler for you)
+    - $ `cd src/Server`
+    - `dotnet add package Saturn`
+
+Edit src/Server/Program.fs with a minimal implementation that exposes an endpoint.
 ```f#
 open Giraffe
 open Saturn
@@ -103,26 +126,29 @@ let app =
 
 run app
 ```
-Now you can run the server `dotnet watch run` and test the endpoint we just added.
+Now you can run the server by executing `dotnet watch run` from src/Server, and test the endpoint we just added.
 
 Saturn is build on top of [Giraffe](https://github.com/giraffe-fsharp/Giraffe), so alternatively you can work with Giraffe.
 
-# Server Unit tests
+<h1 id="server-unit-tests">Server Unit Tests</h1>
+
 First create the project:
   - At the root of the repo run: `dotnet new xunit --output tests/Server -lang F# --name Server.Test`
   - Add the project to the solution: `dotnet sln SafeFromScratch.sln add tests/Server/Server.Test.fsproj`
-  - cd tests/Server
-  - you can run tests with: `dotnet test`
-  - Reference the server project: `dotnet add reference ..\..\src\Server\Server.fsproj`
+  - Now you can run the tests:
+    - move to the tests project folder: `cd tests/Server`
+    - run the tests: `dotnet test`
+  - To reference the server project run the following command from the tests/Server folder: `dotnet add reference ..\..\src\Server\Server.fsproj`
 
-# Server Integration Tests
+<h1 id="server-integration-tests">Server Integration Tests Bonus</h1>
+
 Optionally you can add integration tests to the server.
   - Integration testing with [WebApplicationFactory](https://docs.microsoft.com/en-us/aspnet/core/test/integration-tests?view=aspnetcore-6.0#test-app-prerequisites), some examples:
     - [dotnet-minimal-api-integration-testing](https://github.com/martincostello/dotnet-minimal-api-integration-testing)
     - [Clean Architecture](https://github.com/jasontaylordev/CleanArchitecture#:~:text=The%20easiest%20way%20to%20get%20started%20is%20to,the%20back%20end%20%28ASP.NET%20Core%20Web%20API%29%20) 
-  - Add testing package: `dotnet add package Microsoft.AspNetCore.Mvc.Testing`
-  - Create a Program to be the entry point and a WebApplicationFactory fixture for testing.
-
+  - Navigate to the test project `cd tests/Server`
+  - Add the dotnet testing package: `dotnet add package Microsoft.AspNetCore.Mvc.Testing`
+  - Create a Program inside src/Server/Program.fs to be the entry point:
 ```f#
 // The type program is used as the entry point for WebApplicationFactory for testing.
 type Program () =
@@ -140,7 +166,7 @@ type Program () =
 
 Program().main [||]
 ```
-Now you can create a WebApplicationFactory that you can use in your unit tests.
+Now you can create a WebApplicationFactory inside tests/Server that you can use in your unit tests.
 ```f#
 type ServerFixture () =
     inherit WebApplicationFactory<Program>()
@@ -168,15 +194,18 @@ type IntegrationTests' () =
 ```
 Note that you can override different methods of the WebApplication factory to customize the setup for your tests.
 
-# Fable
+<h1 id="fable">Fable</h1>
+
 First we need to install the fable compiler. 
 
 The Fable compiler job is to convert your .fs files into javascript files.
 
-We didn't create a tool manifest so we need to create one first: `dotnet new tool-manifest`
+In the root folder of the project follow this steps to add the dotnet fable compiler tool:
+  - We didn't create a tool manifest so we need to create one first: `dotnet new tool-manifest`
   - Now that we have a manifest we can start adding tools, starting with fable: `dotnet tool install fable`
-  - optionally you can add the .config/dotnet-tools.json file to the `Solution Items` virtual folder.
-  - Now you can `run dotnet fable` to compile the client project
+  - optionally you can add the .config/dotnet-tools.json file to the `Solution Items` virtual folder of the solution.
+  - Now you can run `dotnet fable` to compile the client project
+
 All of our tools can be found in the `.config/dotnet-tool.json` file
 ```js
 {
@@ -198,12 +227,12 @@ Now we can add the Fable packages to the Client.
     - `dotnet add package Fable.Browser.DOM`
     - `dotnet add package Fable.Core`
 
-Now you can run dotnet `fable watch src/Client` which will transpile your .fs files to JS.
+Now from the root folder you can run `dotnet fable watch src/Client` which will transpile your .fs files to JS.
   - After you run the command notice how the Program.fs now has a Program.fs.js generated by Fable.
 
 Now we need a simple html entry point, for this create a `src/Client/index.html` file and import the generated JS file that will be generated by Fable.
 
-index.html
+src/Client/index.html
 ```html
 <!doctype html>
 <html lang="en">
@@ -220,26 +249,27 @@ index.html
 </body>
 </html>
 ```
-Program.fs
+src/Client/Program.fs
 ```f#
 module App
 open Browser.Dom
 let helloH2 = document.querySelector("#hello") :?> Browser.Types.HTMLDivElement
 helloH2.innerText <- "Welcome to Fable!!"
 ```
-Note that if you open index.html in your browser you will get an error because fable transpiles code using features that are not supported by all browsers (In this case module imports and exports)
+Note that if you open index.html in your browser you will get an error because fable transpiles code using features that are not supported by all browsers (In this case `module imports` and `module exports`)
 
-# Create a bundle with Webpack
+<h1 id="webpack-bundle">Create a bundle with Webpack</h1>
+
 Use [webpack](https://webpack.js.org/guides/installation/) module bundler to create a bundle.js file and solve the module issues we have seen above in the generated js file.
-  - In the root of the project run: `npm init` to create the package.json file
+  - In the root folder of the project run: `npm init` to create the package.json file
     - remember to add "private": true, to make it explicit that this package won't be published. 
   - Let's add webpack with `npm install webpack webpack-cli --save-dev`
-    - [webpack-cli](https://webpack.js.org/api/cli/) to run webpack using npx or as an npm command.
-  - Add node_modules/ to the .gitignore file. 
+    - [webpack-cli](https://webpack.js.org/api/cli/) is used to run webpack using npx or as an npm command.
+  - Add `node_modules/` to the .gitignore file, all the npm packages are going to be installed in this folder. 
   - Manually create a `webpack.config.js` file or run `npx webpack init`. 
     - webpack.config.js is the default file that webpack looks for.
   - Now you can run `npx webpack` and our bundle.js file will be generated.
-  - We are going to send the bundle to a dist folder in the client so add the dist/ folder to .gitignore.
+  - We are going to send the bundle to a dist folder in the client so add the `dist/` folder to .gitignore.
   - All that's missing is to update our index.js to reference bundle.js instead of Program.fs.js
   - optionally you can add package-lock.json to the `Solution Items` virtual folder. 
 
@@ -276,7 +306,8 @@ Now you can run `npm run build` instead of `npx webpack`.
 If you are wondering why you can't run `webpack` directly from the command line, this is because we don't have it as a global package,
 You don't have this problem when you add this command to the package.json file because when you run it from there the context will be the project and it will look for webpack in the node_modules folder.
 
-# Webpack plugins
+<h1 id="webpack-plugins">Webpack plugins</h1>
+
 We are going to start with a simple plugin that will allow us to copy files from a public folder to the dist folder.
   - install the npm copy-webpack-plugin plugin: `npm install copy-webpack-plugin --save-dev`
   - We are going to copy the index.html file along with public assets like a favicon.png file.
@@ -302,7 +333,8 @@ Now that we are copying our html file from the public folder to the distribution
 <script src="bundle.js"></script>
 ```
 
-# Loading Styles
+<h1 id="loading-styles">Loading Styles</h1>
+
 We are going to use webpack loaders in order to load css, sass and scss files. 
   - Check the official docs for more details: [webpack sass loader](https://webpack.js.org/loaders/sass-loader/)
   - install webpack css packages: `npm install --save-dev style-loader css-loader sass-loader sass`
@@ -318,9 +350,12 @@ module: {
             test: /\.(sass|scss|css)$/,
             // The use property indicates which loader should be used to do the transforming.
             use: [
-                'style-loader',
-                'css-loader',
-                'sass-loader'
+                // Creates `style` nodes from JS strings
+                "style-loader",
+                // Translates CSS into CommonJS
+                "css-loader",
+                // Compiles Sass to CSS
+                "sass-loader",
             ]
         }
     ]
@@ -333,23 +368,23 @@ In order to check the actual files in the dev console you need to add [source ma
 In this case this is really straight forward an you can just update loaders like this:
 ```js
 use: [
-    'style-loader',
+    // Creates `style` nodes from JS strings
+    "style-loader",
+    // Translates CSS into CommonJS
     {
-        loader: 'css-loader',
-        options: {
-            sourceMap: true,
-        },
+        loader: "css-loader",
+        options: { sourceMap: true }
     },
+    // Compiles Sass to CSS
     {
-        loader: 'sass-loader',
-        options: {
-            sourceMap: true,
-        },
-    }
+        loader: "sass-loader",
+        options: { sourceMap: true }
+    },
 ]
 ```
 
-# Hot Reload
+<h1 id="hot-reload">Hot Reload</h1>
+
 One of the most productive features you can get with webpack is hot reload and is really simple to add.
   - First install the dev-server package: `npm install --save-dev webpack-dev-server`
   - Add the [devServer](https://webpack.js.org/guides/hot-module-replacement/) configuration to the webpack.config.js file.
@@ -362,12 +397,16 @@ devServer: {
 ```
 Now you can run `dotnet fable watch --run webpack-dev-server` to run fable and the web server in parallel and see your changes be reloaded in real time.
 
-## Fake Build
-We still need to start the server, the client and fable. So it's time to simplify this process with the help of [fake](https://fake.build/)
+<h1 id="fake-build">Fake Build</h1>
+
+We still need to start the server, the client and fable. So it's time to simplify this process with the help of [fake](https://fake.build/).
+
+Note: This is one of my favorite tools as it will speed up your development process by automating some tasks that you do regularly. Be sure to pay attention so you can keep adding tasks that make your life easier.
+
 Although we could use the fake-cli along with a .fsx script we are going to use the same approach as the SAFE template and create a build project.
   - Create a Build project in the root folder of the repo.
-    - dotnet new console -lang F# --name Build --output ./
-    - Note output ./ this is very important since we want the .fsproj file to be in the root folder so we can call commands with dotnet run directly.
+    - `dotnet new console -lang F# --name Build --output ./`
+    - Note the parameter `--output ./` this is very important since we want the .fsproj file to be in the root folder so we can call commands with dotnet run directly.
   - Add Fake.Core.Target package `dotnet add package Fake.Core.Target`.
   - Add Fake.IO.FileSystem `dotnet add package Fake.IO.FileSystem` we are going to use it to delete folders in the clean step later.
   - Add the project to the solution.
@@ -388,7 +427,9 @@ Inspired in the Fable template let's add the following lines before the Run targ
 let execContext = Context.FakeExecutionContext.Create false "build.fsx" []
 Context.setExecutionContext (Context.RuntimeContext.Fake execContext)
 ```
-if we execute `dotnet run` now we will see `-- run --` printed in the console. Now we are ready to add some real tasks.
+if we execute `dotnet run` now we will see `-- run --` printed in the console. 
+
+Now we are ready to add some real tasks (please read the comments and follow the code, I believe it's self explanatory)
 ```f#
 open Fake.Core
 open Fake.IO
@@ -439,7 +480,7 @@ let main args =
         printfn $"{e}"
         1
 ```
-Now we can just use `dotnet run Clean` to clean our projects or `dotnet run` to run the Client and the Server in parallel with hor reload and everything else in place.
+Now we can just use `dotnet run Clean` to clean our projects or `dotnet run` to run the Client and the Server in parallel with hot reload and everything else in place.
 Additionally we can add dependencies like:
 ```f#
 // Define dependencies
@@ -450,7 +491,8 @@ let dependencies = [
 ]
 ```
 
-# Fantomas
+<h1 id="fantomas">Fantomas</h1>
+
 [Fantomas](https://github.com/fsprojects/fantomas) is a tool to format the src code.
   - To add the tool run the following command in the root folder: dotnet tool install fantomas-tool
   - Add a new target task on fake to easily run the tool and format your code
@@ -461,7 +503,8 @@ Target.create "Format" (fun _ ->
 ```
   - Try it with `dotnet run Format`
 
-# Elmish
+<h1 id="elmish">Elmish</h1>
+
 Now that we can easily build the project with Fake, we are going to add Elmish to the Client.
 - Navigate to the client: `cd src/Client`
 - Add the Elmish package `dotnet add package Fable.Elmish`
@@ -547,7 +590,8 @@ You also need to update the public/index.html file and add the `elmish-app` elem
 </body>
 ```
 
-# Source maps and debugging
+<h1 id="debugging">Source maps and debugging</h1>
+
 We already added source maps for the css files, similarly we are going to add source maps for the js files. 
 First we need to add a devtool to the webpack.config.js file:
 ```js
@@ -603,7 +647,8 @@ Program.mkProgram init update view
 |> Program.run
 ```
 
-# Client Unit Tests
+<h1 id="client-unit-tests">Client Unit Tests</h1>
+
 Remember that our client although written in F# is finally run on a web browser and with Javascript,
 for this reason we test it with the [Mocha](https://mochajs.org/) Javascript testing framework. 
 For this we are going to use the [Fable.Mocha](https://github.com/Zaid-Ajaj/Fable.Mocha) library that easily integrates with our F# code.
@@ -678,7 +723,8 @@ Target.create "ClientTests" (fun _ ->
 ```
 And now we can run: `dotnet run ClientTests`
 
-# Expecto
+<h1 id="expecto">Expecto</h1>
+
 Now we are going to add [Expecto](https://github.com/haf/expecto) to the server tests.
 - First add the package: `cd tests/Server` and then `dotnet add package Expecto`
 
@@ -708,7 +754,7 @@ Now you need to update the .fsproj file to be an executable and we can remove xu
 
 </Project>
 ```
-Not it's turn to update our unit tests and use Expecto instead of XUnit
+Now it's time to update our unit tests and use Expecto instead of XUnit
 ```f#
 module Server.Tests
 
@@ -754,11 +800,14 @@ Target.create "Tests" (fun _ ->
     |> ignore)
 ```
 
-# Clean the project
+<h1 id="clean-the-project">Clean the project</h1>
+
 We are in really good shape now, we finished setting up the client and the server and we are ready to start adding some features.
 However we added a bunch of small changes and we need to clean the project a little bit so it's more maintainable.
+
 ## Webpack
 Let's start by cleaning our webpack configuration, for this we are just going to take the hardcoded paths and take them to a CONFIG object.
+So at the beginning of our ```./webpack.config.js``` file, we add the lines below.
 ```js
 const CONFIG = {
     fsharpEntry: "./src/Client/Program.fs.js",
@@ -933,9 +982,10 @@ let all =
 Now if you run `dotnet run RunTests` notice how your Shared.Tests are run along with both Client and Server tests.
 
 ## Bonus
-Our code looks pretty good now, but let's run fatomas to make sure is well formatted: `dotnet run Format`
+Our code looks pretty good now, but let's run fantomas to make sure is well formatted: `dotnet run Format`
 
-# Client - Server Communication
+<h1 id="client-server-communication">Client-Server Communication</h1>
+
 In order to send requests from the client to the server we are going to use [Fable.Remoting](https://github.com/Zaid-Ajaj/Fable.Remoting).
 - Add Fable.Remoting.Client to the Client project: `dotnet add src/Client/Client.fsproj package Fable.Remoting.Client`
 - Add Fable.Remoting.Giraffe to the Server project: `dotnet add src/Server/Server.fsproj package Fable.Remoting.Giraffe`
@@ -1091,7 +1141,8 @@ Use either instead of perform to handle a request error:
 let cmd = Cmd.OfAsync.either greetingApi.greet "Client" GotGreeting ApiError
 ```
 
-# Prod Bundle
+<h1 id="prod-bundle">Prod Bundle</h1>
+
 Our project looks great and we are ready to start adding features, however at some point we'll need to deploy to production and we not ready for that yet.
 
 ## Update webpack
@@ -1227,7 +1278,8 @@ However we are going to add a dependency so Bundle depends on the Clean task
 ```
 And we don't want to commit the generated files to our repo so don't forget to add `deploy/` to the .gitignore file.
 
-# Feliz.Bulma
+<h1 id="feliz-bulma">Feliz.Bulma</h1>
+
 Now we are going to add [Feliz.Bulma](https://dzoukr.github.io/Feliz.Bulma/#/) and we are going to improve our UI.
 - Install Feliz.Bulma with femto: `dotnet femto install Feliz.Bulma`
 - Import the bulma styles
@@ -1285,7 +1337,7 @@ let view model dispatch =
 Since we are building the SAFE template now we are ready to implement a simple Todos app like the template, but I'll leave this as an extra exercise.
 
 ## Bonus 2
-Instead of using a type Program to in the Server that we use to create our WebApplicationFactory for our integration tests, we are going to use a generic type.
+Instead of using a type Program in the Server to create our WebApplicationFactory for our integration tests, we are going to use a generic type.
 This way our Server.js will look cleaner:
 ```f#
 // Server Type is only used in our unit tests to identify this assembly and create a WebApplicationFactory.
@@ -1331,7 +1383,8 @@ type ServerAppFactory<'T when 'T : not struct> () =
 let server = (new ServerAppFactory<Server>()).Server
 ```
 
-# Publish the application
+<h1 id="publish">Publish the Application</h1>
+
 We have a working application, so it's time to publish it!
 We are going to publish the application to Azure Apps using [Farmer](https://compositionalit.github.io/farmer/)
 - Start by adding Farmer to the build project: `dotnet add package Farmer`
@@ -1377,9 +1430,7 @@ deployment
 ```
 - Note that you need to install and be logged into the [azure cli](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli-windows?tabs=azure-cli), for more information in how to complete the deploy review the official [Farmer](https://compositionalit.github.io/farmer/quickstarts/quickstart-3/) docs.
 
-<h1 id="bonus">Bonus</h1>
-
-## Warnings as Errors
+<h1 id="paket">Paket</h1>
 
 There is a debate between using [Paket](https://fsprojects.github.io/Paket/index.html) or [Nuget](https://docs.microsoft.com/en-us/nuget/what-is-nuget) to manage dependencies for this reason I leave it up to you to implement the following steps to add Paket:
 - Install paket: `dotnet tool install paket`
@@ -1393,9 +1444,12 @@ paket-files/
 That's it! now you can try to run your tests `dotnet run RunTests` or run the app `dotnet run`
 If you want to review this step checkout the paket branch.
 
-#<h1 id="warn-as-error">Warnings as Errors Bonus</h1>
+<h1 id="bonus-content">Bonus</h1>
+
+## Warnings as Errors
+
 What a best way to keep your project in shape that preventing warnings from taking over your project.
-For this we just need to add the following line `<TreatWarningsAsErrors>true</TreatWarningsAsErrors>` to all of our .fsproj projects.
+For this we just need to add the flag `TreatWarningsAsErrors` to all of our .fsproj projects.
 
 Server.fsproj example:
 ```xml
@@ -1432,7 +1486,7 @@ For those of you that are not familiar with the ASP.NET Core Web API template, b
 }
 ```
 - `dotnet run` will use this profile by default, but in case you add more profiles you will need to specify which one you want to use for example `dotnet run --launch-profile "SelfHostedServer"`.
-- Note that we are passing one environment variable `ASPNETCORE_ENVIRONMENT`, this one is a default environment variable that is used by ASP.NET Core, but you can pass more variables adding them here.
+- Note that we are passing one environment variable `ASPNETCORE_ENVIRONMENT`, this one is a default environment variable that is used by ASP.NET Core, but you can pass ass many variables ass necessary.
   - As a quick tip if you have an environment variable that you want to override like `Logging.LogLevel.Microsoft` you need to replace the dots with two underscores `Logging__LogLevel__Microsoft: Warning` ;)
 - We are defining the applicationUrl in this configuration so we can remove it from our application builder.
 ```f#
@@ -1581,6 +1635,7 @@ module.exports = common.getConfig(CONFIG);
 ### Webpack Refactoring 3
 I created a PR to include the previous changes in the official Safe-Template repository and some feedback came which I'm adding in this bonus.
 The thing is we can simplify the webpack.config file even more and the steps are quite similar to the previous bonus, remember we created a `getConfig` method? well we are going to move it back to webpack.config.js
+
 I know sorry for making you work double, but there are some tricks that we are going to use to make it work with just the webpack.config.js file and get rid of the webpack.test.config.js file and the webpack.common.js file. (if you have more complex workflows you can always add them back)
 
 1. Move both CONFIG configurations to the webpack.config.js file:
@@ -1593,7 +1648,7 @@ const TEST_CONFIG = {
     /* test config content remains the same */
 };
 ```
-2. We are going to export a [webpack function](https://webpack.js.org/configuration/configuration-types/#exporting-a-function) instead of an object and we are going to choose which config we need to use inside:
+2. We are going to export a [webpack function](https://webpack.js.org/configuration/configuration-types/#exporting-a-function) instead of an object, the content of the function will be practically or at least quite similar to the one that we created in the previous step, so you can just move it back. Now I'm going to focus in the main differences that you need to do:
 ```js
 module.exports = function(env, arg) {
     // Mode is passed as a flag to npm run, we pass this flag in the package.json scripts. Ex. --mode development
@@ -1722,12 +1777,13 @@ If you started using [fantomas](https://github.com/fsprojects/fantomas/blob/mast
 You may be Ok with this style of coding and that's fine but I don't like it very much, so I decided to add a `.editorconfig` file.
 
 [editorconfig](https://editorconfig.org/) Is intended to be a standard way to define your coding style in the project so all developers use the same coding style. It supports f# files, c#, files, js files and others.
-A nice feature of the using a `.editorconfig` is that IDEs take advantage of it and will use it to format your code as well.  
+A nice feature of using a `.editorconfig` is that IDEs take advantage of it and will use it to format your code as well.  
 
 These are the steps to integrate fantomas with your settings:
 1. Create a `.editorconfig` file in the root folder of the repository. (This way the styles will be applied to the whole solution)
-2. Copy the [fantomas](https://github.com/fsprojects/fantomas/blob/master/docs/Documentation.md#configuration) default `.editorconfig` settings.
+2. Copy the fantomas default `.editorconfig` settings from [here](https://github.com/fsprojects/fantomas/blob/master/docs/Documentation.md#configuration).
 ```gitignore
+# It looks something like this:
 [*.fs]
 indent_size=4
 max_line_length=120
@@ -1737,8 +1793,8 @@ max_line_length=120
 ```gitignore
 fsharp_single_argument_web_mode=true
 ```
-4. Since fantomas tries to format recursively all the .fs files it also tries to format the .fs files that come with the nuget dependencies in the client, for this reason we are going to ignore the `output` folder located in the Client project. 
-Add a [.fantomasignore](https://github.com/fsprojects/fantomas/blob/master/docs/Documentation.md#ignore-files-fantomasignore) file in the root folder of the repo with this content (It uses the same syntax as .gitignore):
+4. Since fantomas tries to format recursively all the .fs files, it also tries to format the .fs files that come from the nuget Client dependencies, for this reason we are going to ignore the `output` folder located in the Client and Client.Test projects. 
+For this add a [.fantomasignore](https://github.com/fsprojects/fantomas/blob/master/docs/Documentation.md#ignore-files-fantomasignore) file in the root folder of the repo with the following content (It uses the same syntax as .gitignore):
 ```gitignore
 # Ignore Fable output files
 output/
@@ -1772,6 +1828,6 @@ get
 
 Initially I thought on adding a step to make this project a template as well and show you how to do it, but I believe it goes out of the scope of this tutorial. Besides we already have the Official template so I encourage you to contribute to it.
 
-I hope you liked the bonus parts, I feel they are very important in any project, but if you feel I missed something important that should be part of this tutorial let me know or create a PR :)
+I hope you liked the bonus parts, I feel they are very important in any project, but if you feel I missed something important that should be here let me know or create a PR :)
 
 Congratulations now you know the purpose of every file in the template!!!

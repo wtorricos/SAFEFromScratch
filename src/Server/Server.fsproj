@@ -8,8 +8,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Include="Server.fs" />
     <Content Include="Properties\launchSettings.json" />
+    <Compile Include="Server.fs" />
   </ItemGroup>
   
   <ItemGroup>
@@ -22,7 +22,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Fable.Remoting.Giraffe" Version="5.6.0" />
+    <PackageReference Include="Fable.Remoting.Giraffe" Version="5.9.0" />
     <PackageReference Include="Saturn" Version="0.15.0" />
   </ItemGroup>
 

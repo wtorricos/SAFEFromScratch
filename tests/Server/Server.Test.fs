@@ -26,11 +26,13 @@ let serverUnitTests =
 open System
 open Microsoft.AspNetCore.Hosting
 open Microsoft.Extensions.DependencyInjection
+
 /// .Net core utility for integration testing https://docs.microsoft.com/en-us/aspnet/core/test/integration-tests?view=aspnetcore-6.0#customize-webapplicationfactory
 type ServerAppFactory<'T when 'T: not struct>() =
     inherit WebApplicationFactory<'T>()
     /// override the CreateHostBuilder method and return the Saturn application
     override _.CreateHostBuilder() = app
+
     /// override ConfigureWebHost to customize the Factory https://docs.microsoft.com/en-us/aspnet/core/test/integration-tests?view=aspnetcore-6.0#customize-webapplicationfactory
     override _.ConfigureWebHost builder =
         let configureServices (_: IServiceCollection) = ()
@@ -42,7 +44,8 @@ type ServerAppFactory<'T when 'T: not struct>() =
 
 // We don't have a type for the Program, that's why we added this TestType
 // ServerAppFactory only requires the generic parameter to be defined in the Server Assembly.
-let server = (new ServerAppFactory<Server>()).Server
+let server =
+    (new ServerAppFactory<Server>()).Server
 
 let serverIntegrationTests =
     testList
@@ -50,7 +53,9 @@ let serverIntegrationTests =
         [ testCase "Get todos"
           <| fun _ ->
               let client = server.CreateClient()
-              let content = new StringContent("", Encoding.UTF8)
+
+              let content =
+                  new StringContent("", Encoding.UTF8)
 
               let response =
                   client
