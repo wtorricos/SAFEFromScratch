@@ -1,10 +1,40 @@
 # SAFE template from scratch
 In this guide we'll start from a blank project and start adding functionality so we can get a template similar to the [SAFE Template](https://safe-stack.github.io/docs/quickstart/), this way you will understand the role of every file and dependency.
-You can follow this guide from top to bottom or you can review it with the git history as every step correspond to a commit that has the described changes.
+You can follow this guide from top to bottom or you can review it with the git history as every step corresponds to a commit that has the described changes.
 
 Note that one difference with the SAFE template is that in this project we'll use .net6.0, along with the latest version of dotnet tools, npm packages and nuget packages while SAFE may not be in the latest version of some of them, for this reason some small differences may be seen.
 
-# Create the solution and projects
+# List of contents
+- [1. Create the solution and projects](#solution)
+- [2. Saturn](#saturn)
+- [3. Server Unit tests](#server-unit-tests)
+- [4. Server Integration Tests](#server-integration-tests)
+- [5. Fable](#fable)
+- [6. Create a bundle with Webpack](#webpack-bundle)
+- [7. Webpack plugins](#webpack-plugins)
+- [8. Loading Styles](#loading-styles)
+- [9. Hot Reload](#hot-reload)
+- [10. Fake Build](#fake-build)
+- [11. Fantomas](#fantomas)
+- [12. Elmish](#elmish)
+- [13. Source maps and debugging](#debugging)
+- [14. Client Unit Tests](#client-unit-tests)
+- [15. Expecto](#expecto)
+- [16. Clean the project](#clean-the-project)
+  - 16.1 Webpack
+  - 16.2 Client
+  - 16.3 Server
+  - 16.4 Build
+  - 16.5 Shared tests
+- [17. Client-Server Communication](#client-server-communication)
+- [18. Prod Bundle](#prod-bundle)
+- [19. Feliz.Bulma](#feliz-bulma)
+- [20. Publish the application](#publish)
+- [21. Paket optional](#paket)
+- [22. Warning as Error](#warn-as-error)
+
+#<h1 id="solution">Create the solution and projects</h1>
+
 First we are going to create the solution and the main projects.
   - Create the solution: $ `dotnet new sln --name SafeFromScratch`
   - src folder: $ `mkdir src`
@@ -1339,6 +1369,35 @@ deployment
 |> ignore
 ```
 - Note that you need to install and be logged into the [azure cli](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli-windows?tabs=azure-cli), for more information in how to complete the deploy review the official [Farmer](https://compositionalit.github.io/farmer/quickstarts/quickstart-3/) docs.
+
+#<h1 id="paket">Paket Optional</h1>
+
+There is a debate between using [Paket](https://fsprojects.github.io/Paket/index.html) or [Nuget](https://docs.microsoft.com/en-us/nuget/what-is-nuget) to manage dependencies for this reason I leave it up to you to implement the following steps to add Paket:
+- Install paket: `dotnet tool install paket`
+- Convert the solution to paket: `dotnet paket convert-from-nuget`
+- Update your .gitignore:
+```gitignore
+# Paket
+packages/
+paket-files/
+```
+That's it! now you can try to run your tests `dotnet run RunTests` or run the app `dotnet run`
+If you want to review this step checkout the paket branch.
+
+#<h1 id="warn-as-error">Warnings as Errors Bonus</h1>
+What a best way to keep your project in shape that preventing warnings from taking over your project.
+For this we just need to add the following line `<TreatWarningsAsErrors>true</TreatWarningsAsErrors>` to all of our .fsproj projects.
+
+Server.fsproj example:
+```xml
+<PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net6.0</TargetFramework>
+    <!-- https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-options/errors-warnings#treatwarningsaserrors -->
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+</PropertyGroup>
+```
+This will force you to write better code and for example handle all scenarios for a discriminated union when using pattern matching.
 
 # Todos
 - Add support to publish the project to Azure with Farmer.
