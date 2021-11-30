@@ -33,7 +33,7 @@ Note that one difference with the SAFE template is that in this project we'll us
 - [21. Paket optional](#paket)
 - [22. Warning as Error](#warn-as-error)
 
-#<h1 id="solution">Create the solution and projects</h1>
+<h1 id="solution">Create the solution and projects</h1>
 
 First we are going to create the solution and the main projects.
   - Create the solution: $ `dotnet new sln --name SafeFromScratch`
@@ -77,7 +77,7 @@ bin/
 *DS_Store
 ```
 
-#<h1 id="saturn">Saturn</h1>
+<h1 id="saturn">Saturn</h1>
 
 Add [Saturn](https://saturnframework.org/) package to the server project. 
   - $ `cd src/Server`
@@ -102,7 +102,7 @@ Now you can run the server `dotnet watch run` and test the endpoint we just adde
 
 Saturn is build on top of [Giraffe](https://github.com/giraffe-fsharp/Giraffe), so alternatively you can work with Giraffe.
 
-#<h1 id="server-unit-tests">Server Unit Tests</h1>
+<h1 id="server-unit-tests">Server Unit Tests</h1>
 
 First create the project:
   - At the root of the repo run: `dotnet new xunit --output tests/Server -lang F# --name Server.Test`
@@ -111,7 +111,7 @@ First create the project:
   - you can run tests with: `dotnet test`
   - Reference the server project: `dotnet add reference ..\..\src\Server\Server.fsproj`
 
-#<h1 id="server-integration-tests">Server Integration Tests</h1>
+<h1 id="server-integration-tests">Server Integration Tests</h1>
 
 Optionally you can add integration tests to the server.
   - Integration testing with [WebApplicationFactory](https://docs.microsoft.com/en-us/aspnet/core/test/integration-tests?view=aspnetcore-6.0#test-app-prerequisites), some examples:
@@ -165,7 +165,7 @@ type IntegrationTests' () =
 ```
 Note that you can override different methods of the WebApplication factory to customize the setup for your tests.
 
-#<h1 id="fable">Fable</h1>
+<h1 id="fable">Fable</h1>
 
 First we need to install the fable compiler. 
 
@@ -228,7 +228,7 @@ helloH2.innerText <- "Welcome to Fable!!"
 Note that if you open index.html in your browser you will get an error because fable transpiles code using features that are not supported by all browsers (In this case module imports and exports)
 
 
-#<h1 id="webpack-bundle">Create a bundle with Webpack</h1>
+<h1 id="webpack-bundle">Create a bundle with Webpack</h1>
 
 Use [webpack](https://webpack.js.org/guides/installation/) module bundler to create a bundle.js file and solve the module issues we have seen above in the generated js file.
   - In the root of the project run: `npm init` to create the package.json file
@@ -276,7 +276,7 @@ Now you can run `npm run build` instead of `npx webpack`.
 If you are wondering why you can't run `webpack` directly from the command line, this is because we don't have it as a global package,
 You don't have this problem when you add this command to the package.json file because when you run it from there the context will be the project and it will look for webpack in the node_modules folder.
 
-#<h1 id="webpack-plugins">Webpack plugins</h1>
+<h1 id="webpack-plugins">Webpack plugins</h1>
 
 We are going to start with a simple plugin that will allow us to copy files from a public folder to the dist folder.
   - install the npm copy-webpack-plugin plugin: `npm install copy-webpack-plugin --save-dev`
@@ -303,7 +303,7 @@ Now that we are copying our html file from the public folder to the distribution
 <script src="bundle.js"></script>
 ```
 
-#<h1 id="loading-styles">Loading Styles</h1>
+<h1 id="loading-styles">Loading Styles</h1>
 
 We are going to use webpack loaders in order to load css, sass and scss files. 
   - Check the official docs for more details: [webpack sass loader](https://webpack.js.org/loaders/sass-loader/)
@@ -351,7 +351,7 @@ use: [
 ]
 ```
 
-#<h1 id="hot-reload">Hot Reload</h1>
+<h1 id="hot-reload">Hot Reload</h1>
 
 One of the most productive features you can get with webpack is hot reload and is really simple to add.
   - First install the dev-server package: `npm install --save-dev webpack-dev-server`
@@ -365,7 +365,7 @@ devServer: {
 ```
 Now you can run `dotnet fable watch --run webpack-dev-server` to run fable and the web server in parallel and see your changes be reloaded in real time.
 
-#<h1 id="fake-build">Fake Build</h1>
+<h1 id="fake-build">Fake Build</h1>
 
 We still need to start the server, the client and fable. So it's time to simplify this process with the help of [fake](https://fake.build/)
 Although we could use the fake-cli along with a .fsx script we are going to use the same approach as the SAFE template and create a build project.
@@ -454,7 +454,7 @@ let dependencies = [
 ]
 ```
 
-#<h1 id="fantomas">Fantomas</h1>
+<h1 id="fantomas">Fantomas</h1>
 
 [Fantomas](https://github.com/fsprojects/fantomas) is a tool to format the src code.
   - To add the tool run the following command in the root folder: dotnet tool install fantomas-tool
@@ -466,7 +466,7 @@ Target.create "Format" (fun _ ->
 ```
   - Try it with `dotnet run Format`
 
-#<h1 id="elmish">Elmish</h1>
+<h1 id="elmish">Elmish</h1>
 
 Now that we can easily build the project with Fake, we are going to add Elmish to the Client.
 - Navigate to the client: `cd src/Client`
@@ -553,7 +553,7 @@ You also need to update the public/index.html file and add the `elmish-app` elem
 </body>
 ```
 
-#<h1 id="debugging">Source maps and debugging</h1>
+<h1 id="debugging">Source maps and debugging</h1>
 
 We already added source maps for the css files, similarly we are going to add source maps for the js files. 
 First we need to add a devtool to the webpack.config.js file:
@@ -610,7 +610,7 @@ Program.mkProgram init update view
 |> Program.run
 ```
 
-#<h1 id="client-unit-tests">Client Unit Tests</h1>
+<h1 id="client-unit-tests">Client Unit Tests</h1>
 
 Remember that our client although written in F# is finally run on a web browser and with Javascript,
 for this reason we test it with the [Mocha](https://mochajs.org/) Javascript testing framework. 
@@ -686,7 +686,7 @@ Target.create "ClientTests" (fun _ ->
 ```
 And now we can run: `dotnet run ClientTests`
 
-#<h1 id="expecto">Expecto</h1>
+<h1 id="expecto">Expecto</h1>
 
 Now we are going to add [Expecto](https://github.com/haf/expecto) to the server tests.
 - First add the package: `cd tests/Server` and then `dotnet add package Expecto`
@@ -763,7 +763,7 @@ Target.create "Tests" (fun _ ->
     |> ignore)
 ```
 
-#<h1 id="clean-the-project">Clean the project</h1>
+<h1 id="clean-the-project">Clean the project</h1>
 
 We are in really good shape now, we finished setting up the client and the server and we are ready to start adding some features.
 However we added a bunch of small changes and we need to clean the project a little bit so it's more maintainable.
@@ -946,7 +946,7 @@ Now if you run `dotnet run RunTests` notice how your Shared.Tests are run along 
 ## Bonus
 Our code looks pretty good now, but let's run fatomas to make sure is well formatted: `dotnet run Format`
 
-#<h1 id="client-server-communication">Client-Server Communication</h1>
+<h1 id="client-server-communication">Client-Server Communication</h1>
 
 In order to send requests from the client to the server we are going to use [Fable.Remoting](https://github.com/Zaid-Ajaj/Fable.Remoting).
 - Add Fable.Remoting.Client to the Client project: `dotnet add src/Client/Client.fsproj package Fable.Remoting.Client`
@@ -1103,7 +1103,7 @@ Use either instead of perform to handle a request error:
 let cmd = Cmd.OfAsync.either greetingApi.greet "Client" GotGreeting ApiError
 ```
 
-#<h1 id="prod-bundle">Prod Bundle</h1>
+<h1 id="prod-bundle">Prod Bundle</h1>
 
 Our project looks great and we are ready to start adding features, however at some point we'll need to deploy to production and we not ready for that yet.
 
@@ -1240,7 +1240,7 @@ However we are going to add a dependency so Bundle depends on the Clean task
 ```
 And we don't want to commit the generated files to our repo so don't forget to add `deploy/` to the .gitignore file.
 
-#<h1 id="feliz-bulma">Feliz.Bulma</h1>
+<h1 id="feliz-bulma">Feliz.Bulma</h1>
 
 Now we are going to add [Feliz.Bulma](https://dzoukr.github.io/Feliz.Bulma/#/) and we are going to improve our UI.
 - Install Feliz.Bulma with femto: `dotnet femto install Feliz.Bulma`
@@ -1345,7 +1345,7 @@ type ServerAppFactory<'T when 'T : not struct> () =
 let server = (new ServerAppFactory<Server>()).Server
 ```
 
-#<h1 id="publish">Publish the Application</h1>
+<h1 id="publish">Publish the Application</h1>
 
 We have a working application, so it's time to publish it!
 We are going to publish the application to Azure Apps using [Farmer](https://compositionalit.github.io/farmer/)
@@ -1392,7 +1392,7 @@ deployment
 ```
 - Note that you need to install and be logged into the [azure cli](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli-windows?tabs=azure-cli), for more information in how to complete the deploy review the official [Farmer](https://compositionalit.github.io/farmer/quickstarts/quickstart-3/) docs.
 
-#<h1 id="paket">Paket Optional</h1>
+<h1 id="paket">Paket Optional</h1>
 
 There is a debate between using [Paket](https://fsprojects.github.io/Paket/index.html) or [Nuget](https://docs.microsoft.com/en-us/nuget/what-is-nuget) to manage dependencies for this reason I leave it up to you to implement the following steps to add Paket:
 - Install paket: `dotnet tool install paket`
@@ -1406,9 +1406,10 @@ paket-files/
 That's it! now you can try to run your tests `dotnet run RunTests` or run the app `dotnet run`
 If you want to review this step checkout the paket branch.
 
-#<h1 id="warn-as-error">Warnings as Errors Bonus</h1>
+<h1 id="warn-as-error">Warnings as Errors Bonus</h1>
+
 What a best way to keep your project in shape that preventing warnings from taking over your project.
-For this we just need to add the following line `<TreatWarningsAsErrors>true</TreatWarningsAsErrors>` to all of our .fsproj projects.
+For this we just need to add the flag `TreatWarningsAsErrors` to all of our .fsproj projects.
 
 Server.fsproj example:
 ```xml
