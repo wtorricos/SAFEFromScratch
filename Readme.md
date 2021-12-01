@@ -2,7 +2,7 @@
 In this guide we'll start from a blank project and start adding functionality so we can get a template similar to the [SAFE Template](https://safe-stack.github.io/docs/quickstart/), this way you will understand the role of every file and dependency.
 You can follow this guide from top to bottom or you can review it with the git history as every step corresponds to a commit that has the described changes.
 
-Note that one difference with the SAFE template is that in this project we'll use .net6.0, along with the latest version of dotnet tools, npm packages and nuget packages while SAFE may not be in the latest version of some of them, for this reason some small differences may be seen.
+Note that there may be some small differences and bonuses that I added, however after reading and understanding the template I encourage you to use/contribute the [official template](https://github.com/SAFE-Stack/SAFE-template).
 
 # List of contents
 - [1. Create the solution and projects](#solution)
@@ -1450,7 +1450,7 @@ For those of you that are not familiar with the ASP.NET Core Web API template, b
 }
 ```
 - `dotnet run` will use this profile by default, but in case you add more profiles you will need to specify which one you want to use for example `dotnet run --launch-profile "SelfHostedServer"`.
-- Note that we are passing one environment variable `ASPNETCORE_ENVIRONMENT`, this one is a default environment variable that is used by ASP.NET Core, but you can pass more variables adding them here.
+- Note that we are passing one environment variable `ASPNETCORE_ENVIRONMENT`, this one is a default environment variable that is used by ASP.NET Core, but you can pass ass many variables ass necessary.
   - As a quick tip if you have an environment variable that you want to override like `Logging.LogLevel.Microsoft` you need to replace the dots with two underscores `Logging__LogLevel__Microsoft: Warning` ;)
 - We are defining the applicationUrl in this configuration so we can remove it from our application builder.
 ```f#
