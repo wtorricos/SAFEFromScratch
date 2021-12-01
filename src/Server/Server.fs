@@ -24,7 +24,6 @@ let storage = Storage()
 [ "Create new SAFE project"; "Write your app"; "Ship it !!!" ]
 |> List.iter (Todo.create >> storage.AddTodo >> ignore)
 
-
 let todosApi =
     { getTodos = fun () -> async { return storage.GetTodos() }
       addTodo =

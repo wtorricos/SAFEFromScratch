@@ -9,6 +9,7 @@
 
   <ItemGroup>
     <Compile Include="Server.fs" />
+    <Content Include="Properties\launchSettings.json" />
   </ItemGroup>
 
   <ItemGroup>

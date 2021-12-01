@@ -31,7 +31,9 @@ Note that one difference with the SAFE template is that in this project we'll us
 - [19. Feliz.Bulma](#feliz-bulma)
 - [20. Publish the application](#publish)
 - [21. Paket optional](#paket)
-- [22. Warning as Error](#warn-as-error)
+- [22. Bonus](#bonus)
+  - 22.1 Warning as Error 
+  - 22.2 Server Configuration
 
 <h1 id="solution">Create the solution and projects</h1>
 
@@ -1392,7 +1394,9 @@ deployment
 ```
 - Note that you need to install and be logged into the [azure cli](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli-windows?tabs=azure-cli), for more information in how to complete the deploy review the official [Farmer](https://compositionalit.github.io/farmer/quickstarts/quickstart-3/) docs.
 
-<h1 id="paket">Paket Optional</h1>
+<h1 id="bonus">Bonus</h1>
+
+## Warnings as Errors
 
 There is a debate between using [Paket](https://fsprojects.github.io/Paket/index.html) or [Nuget](https://docs.microsoft.com/en-us/nuget/what-is-nuget) to manage dependencies for this reason I leave it up to you to implement the following steps to add Paket:
 - Install paket: `dotnet tool install paket`
@@ -1421,6 +1425,75 @@ Server.fsproj example:
 </PropertyGroup>
 ```
 This will force you to write better code and for example handle all scenarios for a discriminated union when using pattern matching.
+
+## Server Configuration
+
+### launchSettings.json
+Since Saturn is build on top of ASP.NET Core adding the launchSettings file is quite straight forward. Our main motivation to set this file is to run the server in debug mode from and IDE. 
+
+For those of you that are not familiar with the ASP.NET Core Web API template, by default the template creates a folder called `Properties` with a file called [launchSettings.json](https://docs.microsoft.com/en-us/aspnet/core/fundamentals/environments?view=aspnetcore-6.0#development-and-launchsettingsjson). This file allows you to set **environment variables** that you can read and use for your configuration. Note that this file is only used for local development and you should set real environment variables in your prod environment. 
+- Create the file: `src/Server/Properties/launchSettings.json`
+- Now we are going to add the minimal configuration that will be used when we run the project as a self hosted application:
+  - By self hosted I mean that the application is hosted in kestrel and runs as an executable, this is very common specially for dockerized applications. But we could as well host it on [IIS](https://docs.microsoft.com/en-us/aspnet/core/host-and-deploy/iis/?view=aspnetcore-6.0) or IIS Express, or other dedicated web servers.
+```json
+{
+  "profiles": {
+    "SelfHostedServer": {
+      "commandName": "Project",
+      "launchBrowser": false,
+      "applicationUrl": "http://localhost:8085",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      }
+    }
+  }
+}
+```
+- `dotnet run` will use this profile by default, but in case you add more profiles you will need to specify which one you want to use for example `dotnet run --launch-profile "SelfHostedServer"`.
+- Note that we are passing one environment variable `ASPNETCORE_ENVIRONMENT`, this one is a default environment variable that is used by ASP.NET Core, but you can pass more variables adding them here.
+  - As a quick tip if you have an environment variable that you want to override like `Logging.LogLevel.Microsoft` you need to replace the dots with two underscores `Logging__LogLevel__Microsoft: Warning` ;)
+- We are defining the applicationUrl in this configuration so we can remove it from our application builder.
+```f#
+let app =
+    application {
+        // you can remove this line
+        url "http://localhost:8085"
+        (* ... *)
+    }
+```
+- Run the app `dotnet run` and check that the server still runs in the port 8085 except that now the url is not hardcoded.
+- This configuration only sets a profile for a self-hosted application, but if we would like to host the app in IIS or IIS express we would need some additional configuration. For completeness I'm going to add this configurations which are added by default in the ASP.Core Web API template.
+```f#
+{
+  "iisSettings": {
+    "windowsAuthentication": false,
+    "anonymousAuthentication": true,
+    "iisExpress": {
+      "applicationUrl": "http://localhost:8085",
+      "sslPort": 44333
+    }
+  },
+  "profiles": {
+    "IIS Express": {
+      "commandName": "IISExpress",
+      "launchBrowser": false,
+      "launchUrl": "http://localhost:8080",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      }
+    },
+    "SelfHostedServer": {
+      "commandName": "Project",
+      "launchBrowser": false,
+      "launchUrl": "http://localhost:8080",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      },
+      "applicationUrl": " http://localhost:8085"
+    }
+  }
+}
+```
 
 # Todos
 - Create a dotnet template based on this project. 
