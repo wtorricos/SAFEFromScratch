@@ -1471,8 +1471,60 @@ let app =
   }
 }
 ```
+### application.json
+By default ASP.Core with the default configuration will look for the appsettings.json file.
+So how exactly that this works? Well it works in layers:
 
-# Todos
-- Add support to publish the project to Azure with Farmer.
-- Add optional steps to migrate to paket instead of nuget. 
-- Create a dotnet template based on this project. 
+1. appsettings.json file is loaded.
+2. appsettings.[ASPNETCORE_ENVIRONMENT].json is loaded. ASPNETCORE_ENVIRONMENT is read from the environment variables so you can create more files and chose which one to use by modifying this environment variable.
+3. Environment variables are loaded.
+
+If configuration values collide the last configuration loaded will win.
+
+To see it in action we are going to follow these steps:
+- Create the src/Server/appsettings.json file:
+```json
+{
+  "ConnectionStrings": {
+    "Default": "Server=localhost;Database=SafeFromScratch;Trusted_Connection=True"
+  }
+}
+```
+- Create the src/Server/appsettings.prod.json file:
+```json
+{
+  "ConnectionStrings": {
+    "Default": "Server=localhost;Database=SafeFromScratchProd;Trusted_Connection=True"
+  }
+}
+```
+- Now for the application to read the configuration we need this values to be present, so we need to make sure they are copied when we build the project.
+  - You can either do it from an IDE: `right click -> properties -> copy if newer`
+  - Or you can add the following ItemGroup to the Server.fsproj file:
+```xml
+  <ItemGroup>
+    <Content Include="appsettings.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="appsettings.prod.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+```
+- That's it, now you can try it by adding an endpoint to read the configuration:
+```f#
+open Giraffe
+let appRouter = router {
+    get "/config" (fun next ctx ->
+        let config = ctx.GetService<IConfiguration>()
+        let config =
+            sprintf "appsettings.json connection string: %s\nlaunchSettings environment: %s"
+                config["ConnectionStrings:Default"]
+                config["ASPNETCORE_ENVIRONMENT"]
+        text config next ctx
+        )
+    forward "" todoApi
+}
+```
+- now navigate to http://localhost:8085/config and you will see your configuration
+- you can also try to update the launchSettings.json ASPNETCORE_ENVIRONMENT value to prod and you will see how it overrides the default value of appsettings.json: `"ASPNETCORE_ENVIRONMENT": "prod"`

@@ -1,7 +1,9 @@
 ﻿module Server
 
+open Giraffe
 open Fable.Remoting.Server
 open Fable.Remoting.Giraffe
+open Microsoft.Extensions.Configuration
 open Saturn
 
 open Shared
@@ -34,16 +36,28 @@ let todosApi =
                   | Error e -> return failwith e
               } }
 
-let webApp =
+let todoApi =
     Remoting.createApi ()
     |> Remoting.withRouteBuilder Route.builder
     |> Remoting.fromValue todosApi
     |> Remoting.buildHttpHandler
 
+let appRouter = router {
+    get "/config" (fun next ctx ->
+        let config = ctx.GetService<IConfiguration>()
+        let config =
+            sprintf "appsettings.json connection string: %s\nlaunchSettings environment: %s"
+                config["ConnectionStrings:Default"]
+                config["ASPNETCORE_ENVIRONMENT"]
+        text config next ctx
+        )
+    forward "" todoApi
+}
+
 let app =
     application {
         url "http://localhost:8085"
-        use_router webApp
+        use_router appRouter
         // Adds the distributed memory cache https://docs.microsoft.com/en-us/aspnet/core/performance/caching/distributed?view=aspnetcore-6.0
         memory_cache
         // Enables static files to be served https://docs.microsoft.com/en-us/aspnet/core/fundamentals/static-files?view=aspnetcore-6.0
