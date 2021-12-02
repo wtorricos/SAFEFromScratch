@@ -31,7 +31,7 @@ Note that there may be some small differences and bonuses that I added, however 
 - [19. Feliz.Bulma](#feliz-bulma)
 - [20. Publish the application](#publish)
 - [21. Paket optional](#paket)
-- [22. Bonus](#bonus)
+- [22. Bonus](#bonus-content)
   - 22.1 Warning as Error 
   - 22.2 Server Configuration
 - [23. Final Thoughts](#final-thoughts)
@@ -242,7 +242,7 @@ Use [webpack](https://webpack.js.org/guides/installation/) module bundler to cre
   - Manually create a `webpack.config.js` file or run `npx webpack init`. 
     - webpack.config.js is the default file that webpack looks for.
   - Now you can run `npx webpack` and our bundle.js file will be generated.
-  - We are going to send the bundle to a dist folder in the client so add the dist/ folder to .gitignore.
+  - We are going to send the bundle to a dist folder in the client so add the `dist/` folder to .gitignore.
   - All that's missing is to update our index.js to reference bundle.js instead of Program.fs.js
   - optionally you can add package-lock.json to the `Solution Items` virtual folder. 
 
@@ -376,7 +376,7 @@ Note: This is one of my favorite tools as it will speed up your development proc
 
 Although we could use the fake-cli along with a .fsx script we are going to use the same approach as the SAFE template and create a build project.
   - Create a Build project in the root folder of the repo.
-    - dotnet new console -lang F# --name Build --output ./
+    - `dotnet new console -lang F# --name Build --output ./`
     - Note the parameter `--output ./` this is very important since we want the .fsproj file to be in the root folder so we can call commands with dotnet run directly.
   - Add Fake.Core.Target package `dotnet add package Fake.Core.Target`.
   - Add Fake.IO.FileSystem `dotnet add package Fake.IO.FileSystem` we are going to use it to delete folders in the clean step later.
@@ -1400,8 +1400,6 @@ deployment
 ```
 - Note that you need to install and be logged into the [azure cli](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli-windows?tabs=azure-cli), for more information in how to complete the deploy review the official [Farmer](https://compositionalit.github.io/farmer/quickstarts/quickstart-3/) docs.
 
-<h1 id="bonus">Bonus</h1>
-
 ## Paket
 
 There is a debate between using [Paket](https://fsprojects.github.io/Paket/index.html) or [Nuget](https://docs.microsoft.com/en-us/nuget/what-is-nuget) to manage dependencies for this reason I leave it up to you to implement the following steps to add Paket:
@@ -1416,7 +1414,9 @@ paket-files/
 That's it! now you can try to run your tests `dotnet run RunTests` or run the app `dotnet run`
 If you want to review this step checkout the paket branch.
 
-<h1 id="warn-as-error">Warnings as Errors Bonus</h1>
+<h1 id="bonus-content">Bonus</h1>
+
+## Warnings as Errors
 
 What a best way to keep your project in shape that preventing warnings from taking over your project.
 For this we just need to add the flag `TreatWarningsAsErrors` to all of our .fsproj projects.
