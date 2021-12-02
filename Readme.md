@@ -1396,7 +1396,7 @@ deployment
 
 <h1 id="bonus">Bonus</h1>
 
-## Warnings as Errors
+## Paket
 
 There is a debate between using [Paket](https://fsprojects.github.io/Paket/index.html) or [Nuget](https://docs.microsoft.com/en-us/nuget/what-is-nuget) to manage dependencies for this reason I leave it up to you to implement the following steps to add Paket:
 - Install paket: `dotnet tool install paket`
