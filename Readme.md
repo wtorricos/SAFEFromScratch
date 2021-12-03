@@ -42,7 +42,7 @@ First we are going to create the solution and the main projects.
   - Create the solution: $ `dotnet new sln --name SafeFromScratch`
   - src folder: $ `mkdir src`
   - Client Project: 
-    - create project (by default the folder name is used): `dotnet new console --output src/Server -lang F#`
+    - create project (by default the folder name is used): `dotnet new console --output src/Client -lang F#`
   - Server Project:
     - `dotnet new console --output src/Server -lang F#`
   - Shared Project:
