@@ -34,8 +34,10 @@ Note that one difference with the SAFE template is that in this project we'll us
 - [22. Bonus](#bonus)
   - 22.1 Warning as Error 
   - 22.2 Server Configuration
+  - 22.3 Webpack Refactoring 2
+- [23. Final Thoughts](#final-thoughts)
 
-#<h1 id="solution">Create the solution and projects</h1>
+<h1 id="solution">Create the solution and projects</h1>
 
 First we are going to create the solution and the main projects.
   - Create the solution: $ `dotnet new sln --name SafeFromScratch`
@@ -53,7 +55,7 @@ First we are going to create the solution and the main projects.
       - powershell: New-Item -Name ".gitignore" -ItemType "file"
       - Note that this is a simplistic .gitignore and we'll add more things as needed.
     - optional open the solution from an IDE: 
-      - Create a virtual directory to navigate the project easier from an IDE: Add -> New Solution Folder -> `Solution Items`
+      - Create a virtual directory to easily navigate from an IDE: Add -> New Solution Folder -> `Solution Items`
       - Right click on `Solution Items` folder -> Add -> existing items -> .gitignore
       - Right click on `Solution Items` folder -> Add -> existing items -> Readme.md
 ```
@@ -1528,3 +1530,55 @@ let appRouter = router {
 ```
 - now navigate to http://localhost:8085/config and you will see your configuration
 - you can also try to update the launchSettings.json ASPNETCORE_ENVIRONMENT value to prod and you will see how it overrides the default value of appsettings.json: `"ASPNETCORE_ENVIRONMENT": "prod"`
+
+### Webpack Refactoring 2
+We are in good shape, however there is still one piece that we could improve. Currently our webpack.tests.config.js is configured only for development and although this is what we want in our day to day as developers, we may want to also have a production configuration that will allow us to run our unit tests with the same code that will be deployed to production. Usually this is done automatically by CI tool.
+
+The approach we'll take is really simple, we realized we need the same configuration that we have for production inside webpack.config.js. We could easily just copy paste the code from webpack.config.js to webpack.tests.config.js but we'll take it one step further and we are going to centralize the configuration so we only have to update it in one place.
+
+- Create a `webpack.common.js` file next to the other webpack config files. (you can also add it to the `Solution Items` virtual folder)
+- The only real difference between `webpack.config.js` and `webpack.tests.config.js` is the configuration which we already moved to an object CONFIG, so we can easily create a function that will return the webpack configuration based on the CONFIG parameter. So you just need to create this function inside webpack.common.js with the contents of `webpack.config.js`:
+```js
+
+const getConfig = (CONFIG) => {
+    return {
+        mode: environment,
+        entry: CONFIG.fsharpEntry,
+        // etc.
+        
+        /* rest of the configuration ommited for brevity */
+    };
+}
+
+module.exports.getConfig = getConfig; // we export the function
+```
+- Now we can use it in both `webpack.config.js` and `webpack.tests.config.js` so you should have something like this:
+```f#
+// webpack.tests.config.js
+const common = require("./webpack.common");
+
+const CONFIG = {
+    // The tags to include the generated JS and CSS will be automatically injected in the HTML template
+    // See https://github.com/jantimon/html-webpack-plugin
+    indexHtmlTemplate: './tests/Client/index.html',
+    fsharpEntry: "./tests/Client/output/App.Test.js",
+    outputDir: "./tests/Client/dist",
+    assetsDir: "./src/Client/public",
+    devServerPort: 8080,
+    // When using webpack-dev-server, you may need to redirect some calls
+    // to a external API server. See https://webpack.js.org/configuration/dev-server/#devserver-proxy
+    devServerProxy: {}
+}
+
+module.exports = common.getConfig(CONFIG);
+```
+- Note that I had to update assetsDir to `assetsDir: "./src/Client/public"`, previously we were not worried about copying our assets but since we want the test configuration to be as close as possible to the real implementation we are going to do it now.
+- Use the getConfig function in `webpack.config.js` and you should be ready to try it our with `dotnet run RunTests` and `dotnet run`.
+
+<h1 id="final-thoughts">Final thoughts</h1>
+
+Initially I thought on adding a step to make this project a template as well and show you how to do it, but I believe it goes out of the scope of this tutorial. Besides we already have the Official template so I encourage you to contribute to it.
+
+I hope you liked the bonus parts, I feel they are very important in any project, but if you feel I missed something important that should be part of this tutorial let me know or create a PR :)
+
+Congratulations now you know the purpose of every file in the template!!!
