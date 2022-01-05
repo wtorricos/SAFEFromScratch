@@ -736,7 +736,7 @@ Now you need to update the .fsproj file to be an executable and we can remove xu
 
 </Project>
 ```
-Not it's turn to update our unit tests and use Expecto instead of XUnit
+Now it's time to update our unit tests and use Expecto instead of XUnit
 ```f#
 module Server.Tests
 
