@@ -19,8 +19,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		package.json = package.json
 		package-lock.json = package-lock.json
 		webpack.config.js = webpack.config.js
-		webpack.tests.config.js = webpack.tests.config.js
-		webpack.common.js = webpack.common.js
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{F0B8C704-EAE4-4F37-985C-ADEE45959F0F}"

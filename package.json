@@ -1,11 +1,11 @@
 {
   "private": true,
   "scripts": {
-    "build": "webpack --node-env=development",
-    "build:prod": "webpack --node-env=production",
-    "build:tests": "webpack --config webpack.tests.config.js --node-env=development",
-    "start": "webpack-dev-server --node-env=development",
-    "start:tests": "webpack-dev-server --config webpack.tests.config.js --node-env=development"
+    "build": "webpack --mode development",
+    "build:prod": "webpack --mode production",
+    "build:tests": "webpack --mode development --env test",
+    "start": "webpack-dev-server --mode development",
+    "start:tests": "webpack-dev-server --mode development --env test"
   },
   "dependencies": {
     "bulma": "^0.9.3",
