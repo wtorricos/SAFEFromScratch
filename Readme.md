@@ -789,6 +789,7 @@ However we added a bunch of small changes and we need to clean the project a lit
 
 ## Webpack
 Let's start by cleaning our webpack configuration, for this we are just going to take the hardcoded paths and take them to a CONFIG object.
+So at the beginning of our ```./webpack.config.js``` file, we add the lines below.
 ```js
 const CONFIG = {
     fsharpEntry: "./src/Client/Program.fs.js",
