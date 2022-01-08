@@ -48,9 +48,16 @@ Target.create "CleanAll" (fun _ ->
     Shell.cleanDir deployPath
 )
 
-Target.create "InstallClient" (fun _ -> run npm "install" ".")
+Target.create "InstallClient" (fun _ -> run npm "install --from-lock-file" ".")
 
 Target.create "Run" (fun _ ->
+    run dotnet "build" sharedPath
+    [ "server", dotnet "watch run" serverPath
+      "client", dotnet "fable watch -o output -s --run npm run start --prefix ../.." clientPath ]
+    |> runParallel
+)
+
+Target.create "CleanAndRun" (fun _ ->
     run dotnet "build" sharedPath
     [ "server", dotnet "watch run" serverPath
       "client", dotnet "fable watch -o output -s --run npm run start --prefix ../.." clientPath ]
@@ -94,21 +101,24 @@ Target.create "Azure" (fun _ ->
 // Define dependencies
 open Fake.Core.TargetOperators
 let dependencies = [
-    "Clean"
-        ==> "Bundle"
+    // docs https://fake.build/legacy-core-targets.html#Visualising-target-dependencies
+    // A ==> B Defines a dependency, so every time we run B, A will run first.
+    //         Fake builds a graph will all the dependencies.
+    // A ?=> B is a soft dependency which means, A is not required before B but if both need to run A will run first.
 
-    "Clean"
-        ==> "InstallClient"
-        ==> "Run"
+    "InstallClient" ==> "Run"
 
-    "CleanAll"
-        ==> "InstallClient"
-        ==> "RunTests"
+    "InstallClient" ==> "RunTests"
 
-    "Clean"
-        ==> "InstallClient"
-        ==> "Bundle"
-        ==> "Azure"
+    "Clean" ==> "Bundle"
+    "InstallClient" ==> "Bundle"
+    "Clean" ?=> "InstallClient" // make sure Clean runs before InstallClient
+
+    "CleanAll" ==> "CleanAndRun"
+    "InstallClient" ==> "CleanAndRun"
+    "CleanAll" ?=> "InstallClient"
+
+    "Bundle" ==> "Azure"
 ]
 
 // The entry point allows us to run any task defined as a Target with the help of dotnet.
