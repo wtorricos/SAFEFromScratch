@@ -1,0 +1,3 @@
+# Fantomas ignore https://github.com/fsprojects/fantomas/blob/master/docs/Documentation.md#ignore-files-fantomasignore
+# Ignore Fable output files
+output/

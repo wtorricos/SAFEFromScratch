@@ -37,6 +37,7 @@ Note that one difference with the SAFE template is that in this project we'll us
   - 22.3 Webpack Refactoring 2
   - 22.4 Webpack Refactoring 3
   - 22.5 Build Soft Dependencies
+  - 22.6 Fantomas Settings
 - [23. Final Thoughts](#final-thoughts)
 
 <h1 id="solution">Create the solution and projects</h1>
@@ -1715,6 +1716,57 @@ let dependencies = [
 ]
 ```
 I also created `CleanAndRun` as I found that I don't need to clean the project very often and I use just `Run` most of the times. 
+
+### Fantomas Settings
+If you started using [fantomas](https://github.com/fsprojects/fantomas/blob/master/docs/Documentation.md#using-the-command-line-tool) to format your code you may have noticed that the client is formatted to the right. 
+You may be Ok with this style of coding and that's fine but I don't like it very much, so I decided to add a `.editorconfig` file.
+
+[editorconfig](https://editorconfig.org/) Is intended to be a standard way to define your coding style in the project so all developers use the same coding style. It supports f# files, c#, files, js files and others.
+A nice feature of the using a `.editorconfig` is that IDEs take advantage of it and will use it to format your code as well.  
+
+These are the steps to integrate fantomas with your settings:
+1. Create a `.editorconfig` file in the root folder of the repository. (This way the styles will be applied to the whole solution)
+2. Copy the [fantomas](https://github.com/fsprojects/fantomas/blob/master/docs/Documentation.md#configuration) default `.editorconfig` settings.
+```gitignore
+[*.fs]
+indent_size=4
+max_line_length=120
+# and many more configurations
+```
+3. Update the [fsharp_single_argument_web_mode](https://github.com/fsprojects/fantomas/blob/master/docs/Documentation.md#fsharp_single_argument_web_mode) to true, this is the one that makes the Client look weird.
+```gitignore
+fsharp_single_argument_web_mode=true
+```
+4. Since fantomas tries to format recursively all the .fs files it also tries to format the .fs files that come with the nuget dependencies in the client, for this reason we are going to ignore the `output` folder located in the Client project. 
+Add a [.fantomasignore](https://github.com/fsprojects/fantomas/blob/master/docs/Documentation.md#ignore-files-fantomasignore) file in the root folder of the repo with this content (It uses the same syntax as .gitignore):
+```gitignore
+# Ignore Fable output files
+output/
+```
+5. Finally update the `Format` Fake task that we defined in `./Build.fs` to:
+```f#
+Target.create "Format" (fun _ ->
+    [ "src", dotnet "fantomas ./src -r" "."
+      "tests", dotnet "fantomas ./tests -r" "." ]
+    |> runParallel
+    )
+```
+The important thing to notice here is that I'm passing the folders I want fantomas to format as a parameter (`./src` and `./tests`) and I'm running the command from the root folder `.` otherwise fantomas won't pickup the files we added before.
+
+Note that I found that fantomas was having some problems formatting the `src/Server/Server.fs` file, so I had to fix it manually, to save you a few minutes I had to update the `get "/config"` route to look like this:
+```f#
+get
+    "/config"
+    (fun next ctx ->
+        let config = ctx.GetService<IConfiguration>()
+        let conn = config.["ConnectionStrings:Default"]
+        let env = config.["ASPNETCORE_ENVIRONMENT"]
+
+        let config =
+            $"appsettings.json connection string: {conn}\nlaunchSettings environment: {env}"
+
+        text config next ctx)
+```
 
 <h1 id="final-thoughts">Final thoughts</h1>
 

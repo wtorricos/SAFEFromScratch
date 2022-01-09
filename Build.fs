@@ -64,7 +64,11 @@ Target.create "CleanAndRun" (fun _ ->
     |> runParallel
 )
 
-Target.create "Format" (fun _ -> run dotnet "fantomas . -r" "src")
+Target.create "Format" (fun _ ->
+    [ "src", dotnet "fantomas ./src -r" "."
+      "tests", dotnet "fantomas ./tests -r" "." ]
+    |> runParallel
+    )
 
 Target.create "RunTests" (fun _ ->
     run dotnet "build" sharedTestsPath

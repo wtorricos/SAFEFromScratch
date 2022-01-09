@@ -11,9 +11,9 @@ open Shared
 type Storage() =
     let todos = ResizeArray<_>()
 
-    member __.GetTodos() = List.ofSeq todos
+    member _.GetTodos() = List.ofSeq todos
 
-    member __.AddTodo(todo: Todo) =
+    member _.AddTodo(todo: Todo) =
         if Todo.isValid todo.Description then
             todos.Add todo
             Ok()
@@ -23,7 +23,9 @@ type Storage() =
 let storage = Storage()
 
 // Seed DB
-[ "Create new SAFE project"; "Write your app"; "Ship it !!!" ]
+[ "Create new SAFE project"
+  "Write your app"
+  "Ship it !!!" ]
 |> List.iter (Todo.create >> storage.AddTodo >> ignore)
 
 let todosApi =
@@ -42,17 +44,22 @@ let todoApi =
     |> Remoting.fromValue todosApi
     |> Remoting.buildHttpHandler
 
-let appRouter = router {
-    get "/config" (fun next ctx ->
-        let config = ctx.GetService<IConfiguration>()
-        let config =
-            sprintf "appsettings.json connection string: %s\nlaunchSettings environment: %s"
-                config["ConnectionStrings:Default"]
-                config["ASPNETCORE_ENVIRONMENT"]
-        text config next ctx
-        )
-    forward "" todoApi
-}
+let appRouter =
+    router {
+        get
+            "/config"
+            (fun next ctx ->
+                let config = ctx.GetService<IConfiguration>()
+                let conn = config.["ConnectionStrings:Default"]
+                let env = config.["ASPNETCORE_ENVIRONMENT"]
+
+                let config =
+                    $"appsettings.json connection string: {conn}\nlaunchSettings environment: {env}"
+
+                text config next ctx)
+
+        forward "" todoApi
+    }
 
 let app =
     application {
@@ -67,6 +74,8 @@ let app =
     }
 
 // Server Type is only used in our unit tests to identify this assembly and create a WebApplicationFactory.
-type Server = class end
+type Server =
+    class
+    end
 
 run app

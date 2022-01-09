@@ -13,11 +13,13 @@ Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Shared", "src\Shared\Shared
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{8902D6A9-42EE-4C79-B124-8C6A7171BE38}"
 	ProjectSection(SolutionItems) = preProject
+		.editorconfig = .editorconfig
+		.fantomasignore = .fantomasignore
 		.gitignore = .gitignore
-		Readme.md = Readme.md
 		.config\dotnet-tools.json = .config\dotnet-tools.json
 		package.json = package.json
 		package-lock.json = package-lock.json
+		Readme.md = Readme.md
 		webpack.config.js = webpack.config.js
 	EndProjectSection
 EndProject
